@@ -1,0 +1,10 @@
+Your task is to transform the given text into a semantic graph in the form of a list of triples. The triples must be in the form of [Entity1, Relationship, Entity2]. In your answer, please strictly only include the triples and do not include any explanation or apologies.
+
+Here are some examples:
+{few_shot_examples}
+
+Now please extract triplets from the following text. Here are some potential relations and their descriptions you may look out for during extraction:
+{relations_hint}
+Note that this list may not be exhaustive, you may use other relations and not necessarily all relations in this list are present in the text.
+Text: {input_text}
+Candidate entities: {entities_hint}

@@ -1,0 +1,23 @@
+Example 1:
+Text: Spodnje Hoče () is a settlement in and the administrative centre of the Municipality of Hoče–Slivnica in northeastern Slovenia.
+Triplets: [['Spodnje Hoče', 'located in the administrative territorial entity', 'Municipality of Hoče–Slivnica'], ['Municipality of Hoče–Slivnica', 'contains settlement', 'Spodnje Hoče'], ['Municipality of Hoče–Slivnica', 'country', 'Slovenia'], ['Slovenia', 'contains administrative territorial entity', 'Municipality of Hoče–Slivnica']]
+
+Example 2:
+Text: Herbert Blankenhorn (15 December 1904 in Mülhausen – 10 August 1991 in Badenweiler) was a German diplomat.
+Triplets: [['Herbert Blankenhorn', 'date of birth', '15 December 1904'], ['Herbert Blankenhorn', 'place of birth', 'Mülhausen'], ['Herbert Blankenhorn', 'date of death', '10 August 1991'], ['Herbert Blankenhorn', 'place of death', 'Badenweiler']]
+
+Example 3:
+Text: Operation Dragon Strike was a NATO counter-insurgent mission in Kandahar province, Afghanistan, against Taliban forces, which started on September 15, 2010.
+Triplets: [['Operation Dragon Strike', 'location', 'Kandahar province'], ['Operation Dragon Strike', 'start time', 'September 15, 2010'], ['Kandahar province', 'country', 'Afghanistan'], ['Afghanistan', 'contains administrative territorial entity', 'Kandahar province']]
+
+Example 4:
+Text: Saleem Safi (Urdu, ) is a Pakistani journalist, columnist, defence analyst and current affairs TV talk show anchorperson.
+Triplets: [['Saleem Safi', 'country of citizenship', 'Pakistan'], ['Urdu', 'country', 'Pakistan'], ['Pakistan', 'language used', 'Urdu'], ['columnist', 'subclass of', 'journalist']]
+
+Example 5:
+Text: Los Trancos Creek (meaning "barriers" or "cattle guards" from the Spanish "Las Trancas") is a creek that flows northerly from Monte Bello Ridge on the northeast slope of the Santa Cruz Mountains to its confluence with San Francisquito Creek at Stanford University in California, United States.
+Triplets: [['Los Trancos Creek', 'mouth of the watercourse', 'San Francisquito Creek'], ['Monte Bello Ridge', 'mountain range', 'Santa Cruz Mountains'], ['Monte Bello Ridge', 'located in the administrative territorial entity', 'California'], ['San Francisquito Creek', 'tributary', 'Los Trancos Creek']]
+
+Example 6:
+Text: Peter Sainthill (8 July 1593 – 12 August 1648) of Bradninch in Devon, England, was twice elected a Member of Parliament for Tiverton in Devon, in the Short Parliament 1640 and in the Long Parliament in November 1640.
+Triplets: [['Peter Sainthill', 'date of birth', '8 July 1593'], ['Peter Sainthill', 'date of death', '12 August 1648'], ['Peter Sainthill', 'member of', 'Short Parliament'], ['Long Parliament', 'inception', 'November 1640']]
