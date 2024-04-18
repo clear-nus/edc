@@ -252,18 +252,10 @@ class EDC:
         output_kg_list.append(canonicalized_triplets_list)
 
         if output_dir is not None:
-            with open(os.path.join(output_dir, "edc_output.csv"), "w") as f:
-                writer = csv.writer(f)
-                if detail_log:
-                    writer.writerow(["input", "oie_triplets", "sd_dict", "canon_triplets"])
-                    rows = zip(input_text_list, oie_triplets, schema_definition_dict_list, canonicalized_triplets_list)
-                else:
-                    writer.writerow(["input", "canon_triplets"])
-                    rows = zip(input_text_list, canonicalized_triplets_list)
-
-                for row in rows:
-                    writer.writerow(row)
-                    f.flush()
+            with open(os.path.join(output_dir, "edc_output.txt"), "w") as f:
+                f.writelines([str(l) for l in canonicalized_triplets_list])
+                f.flush()
+                
             if self.enrich_schema:
                 with open(os.path.join(output_dir, "edc_updated_schema.csv"), "w") as f:
                     writer = csv.writer(f)
@@ -278,19 +270,9 @@ class EDC:
             )
             output_kg_list.append(canonicalized_triplets_list)
             if output_dir is not None:
-                with open(os.path.join(output_dir, f"edc_output_refinement_{iteration + 1}.csv"), "w") as f:
-                    writer = csv.writer(f)
-                    if detail_log:
-                        writer.writerow(["input", "oie_triplets", "sd_dict", "canon_triplets"])
-                        rows = zip(
-                            input_text_list, oie_triplets, schema_definition_dict_list, canonicalized_triplets_list
-                        )
-                    else:
-                        writer.writerow(["input", "canon_triplets"])
-                        rows = zip(input_text_list, canonicalized_triplets_list)
-                    writer = csv.writer(f)
-                    for row in rows:
-                        writer.writerow(row)
+                with open(os.path.join(output_dir, f"edc_output_refinement_{iteration + 1}.txt"), "w") as f:
+                    f.writelines([str(l) for l in canonicalized_triplets_list])
+                    f.flush()
                 if self.enrich_schema:
                     with open(os.path.join(output_dir, f"edc_updated_schema_{iteration + 1}.csv"), "w") as f:
                         writer = csv.writer(f)

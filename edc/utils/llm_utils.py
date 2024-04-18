@@ -1,30 +1,8 @@
-import numpy as np
-from transformers import T5ForConditionalGeneration, T5Tokenizer
-import torch
-import pandas as pd
-import csv
-from typing import List
 import os
 import openai
 import time
-from packaging import version
-import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from edc.utils.e5_mistral_utils import MistralForSequenceEmbedding
-
-if version.parse(transformers.__version__) >= version.parse("4.30"):
-    from transformers import LlamaForCausalLM, LlamaTokenizer
-import json
-from torch.utils.data import Dataset, DataLoader
-import torch.nn as nn
-import torch.nn.functional as F
-from tqdm import tqdm
-import random
 import ast
-import requests
-from torch import Tensor
-import plotly.graph_objects as go
-import networkx as nx
 
 
 def get_detailed_instruct(task_description: str, query: str) -> str:

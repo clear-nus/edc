@@ -1,0 +1,38 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "sentence": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "positive": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "negative": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "positive_relation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "negative_relation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "positive_triple": {
+      "feature": {
+        "feature": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "_type": "Sequence"
+      },
+      "_type": "Sequence"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}

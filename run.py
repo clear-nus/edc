@@ -75,7 +75,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--target_schema_path",
-        default="./schemas/example_schema.csv",
+        default=None,
         help="File containing the target schema to align to.",
     )
     parser.add_argument("--refinement_iterations", default=0, type=int, help="Number of iteration to run.")
