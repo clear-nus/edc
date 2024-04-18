@@ -17,4 +17,6 @@ EDC uses a three-phase framework to approach the task of knowledge graph constru
 
 Here is an illustration of how EDC works:
 
-![](assets/main_fig.pdf)
+![](assets/main_fig.png)
+
+Our experiments with both automatic and human evaluation demonstrate that EDC achieves state-of-the-art performance on the tasks of knowledge graph construction and scales to a previously impossible size of schema.
