@@ -1,0 +1,45 @@
+located in the administrative territorial entity,The subject entity is situated within the administrative territorial entity specified by the object entity.
+country,The subject entity is located in the country specified by the object entity.
+director,The subject entity was directed by the person specified by the object entity.
+cast member,The subject entity includes the person specified by the object entity as a member of its cast.
+screenwriter,The subject entity was written by the person specified by the object entity.
+part of,The subject entity is a part of the entity specified by the object entity.
+located on terrain feature,The subject entity is situated on the terrain feature specified by the object entity.
+original language of film or TV show,The subject entity is originally in the language specified by the object entity.
+employer,The subject entity is employed by the entity specified by the object entity.
+place served by transport hub,The subject entity is a location that is served by the transport hub specified by the object entity.
+named after,The subject entity is named after the entity specified by the object entity.
+owned by,The subject entity is owned by the entity specified by the object entity.
+country of citizenship,The subject entity holds the citizenship of the country specified by the object entity.
+participant in,The subject entity took part in the event specified by the object entity.
+place of birth,The subject entity was born in the location specified by the object entity.
+educated at,The subject entity received education or training at the institution specified by the object entity.
+production company,The subject entity was produced by the company specified by the object entity.
+distributed by,The subject entity was distributed by the company specified by the object entity.
+film editor,The subject entity was edited by the person specified by the object entity.
+member of sports team,The subject entity is a member of the sports team specified by the object entity.
+place of death,The subject entity died in the location specified by the object entity.
+place of burial,The subject entity was buried at the location specified by the object entity.
+country of origin,The subject entity originates from the country specified by the object entity.
+operator,The subject entity is operated by the entity specified by the object entity.
+located in or next to body of water,The subject entity is situated in close proximity to or directly within the body of water specified by the object entity.
+work location,The subject entity worked at the location specified by the object entity.
+producer,The subject entity was produced by the person or entity specified by the object entity.
+language of work or name,The subject entity is written or named in the language specified by the object entity.
+filming location,The subject entity was filmed at the location specified by the object entity.
+location,The subject entity is located in the place specified by the object entity.
+conflict,The subject entity was involved in the conflict specified by the object entity.
+composer,The subject entity was composed by the person specified by the object entity.
+residence,The subject entity resides or lives in the location specified by the object entity.
+after a work by,The subject entity was created or inspired by the work of the person specified by the object entity.
+basin country,The subject entity is part of the basin country specified by the object entity.
+lake outflow,The subject entity releases water into the body of water specified by the object entity.
+inflows,The subject entity receives water from the body of water specified by the object entity.
+executive producer,The subject entity had the person specified by the object entity as one of the executive producers involved in the production process.
+connecting line,The subject entity is connected to the entity specified by the object entity through the relation specified.
+continent,The subject entity is located on the continent specified by the object entity.
+headquarters location,The subject entity has its headquarters located in the place specified by the object entity.
+student of,The subject entity studied under the person specified by the object entity.
+creator,The subject entity was created by the person specified by the object entity.
+award received,The subject entity received the award specified by the object entity.
+military branch,The subject entity is associated with or belongs to the military branch specified by the object entity.

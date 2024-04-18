@@ -1,6 +1,6 @@
 Example 1:
 Text: Lyseren is a lake in the municipalities of Enebakk in Akershus county and Spydeberg in Østfold county , Norway .
-Candidate entities: ['Spydeberg', 'Lyseren', 'Norway', 'Enebakk']
+Candidate entities: ['Enebakk', 'Lyseren', 'Norway', 'Spydeberg']
 Triplets: [['Lyseren', 'located in the administrative territorial entity', 'Enebakk'], ['Lyseren', 'located in the administrative territorial entity', 'Spydeberg'], ['Lyseren', 'country', 'Norway']]
 
 Example 2:
@@ -10,20 +10,20 @@ Triplets: [['Varavu Nalla Uravu', 'cast member', 'Visu'], ['Varavu Nalla Uravu',
 
 Example 3:
 Text: Batura III , also known as Batura Muztagh III , is a peak in Batura Muztagh of Pakistan , which is the westernmost subrange of the Karakoram range .
-Candidate entities: ['Batura III', 'Karakoram', 'Pakistan']
+Candidate entities: ['Pakistan', 'Batura III', 'Karakoram']
 Triplets: [['Batura III', 'country', 'Pakistan'], ['Batura III', 'part of', 'Karakoram'], ['Batura III', 'located on terrain feature', 'Karakoram']]
 
 Example 4:
 Text: Ramakuppam is a village in Chittoor district of the Indian state of Andhra Pradesh .
-Candidate entities: ['Chittoor district', 'India', 'Andhra Pradesh', 'Ramakuppam']
+Candidate entities: ['Chittoor district', 'Andhra Pradesh', 'India', 'Ramakuppam']
 Triplets: [['Ramakuppam', 'located in the administrative territorial entity', 'Chittoor district'], ['Ramakuppam', 'country', 'India'], ['Ramakuppam', 'located in the administrative territorial entity', 'Andhra Pradesh']]
 
 Example 5:
 Text: Kurniwadi is a village in Belgaum district in Karnataka , India .
-Candidate entities: ['India', 'Belgaum district', 'Karnataka', 'Kurniwadi']
+Candidate entities: ['Karnataka', 'Kurniwadi', 'Belgaum district', 'India']
 Triplets: [['Kurniwadi', 'located in the administrative territorial entity', 'Belgaum district'], ['Kurniwadi', 'located in the administrative territorial entity', 'Karnataka'], ['Kurniwadi', 'country', 'India']]
 
 Example 6:
 Text: Stadion Rankhof is a football stadium in Basel , Switzerland .
-Candidate entities: ['Stadion Rankhof', 'Basel', 'Switzerland']
+Candidate entities: ['Switzerland', 'Basel', 'Stadion Rankhof']
 Triplets: [['Stadion Rankhof', 'located in the administrative territorial entity', 'Basel'], ['Stadion Rankhof', 'country', 'Switzerland']]

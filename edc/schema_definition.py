@@ -30,13 +30,12 @@ class SchemaDefiner:
         filled_prompt = prompt_template_str.format_map(
             {
                 "text": input_text_str,
+                "few_shot_examples": few_shot_examples_str,
                 "relations": relations_present,
                 "triples": extracted_triplets_list,
             }
         )
         messages = [{"role": "user", "content": filled_prompt}]
-
-        print(messages)
 
         if self.openai_model is None:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
@@ -44,7 +43,7 @@ class SchemaDefiner:
                 [messages], self.model, self.tokenizer, device=self.model.device, answer_prepend="Answer: "
             )[0]
         else:
-            completion = llm_utils.openai_chat_completion(self.model_name, None, messages)
-        print(completion)
+            completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
+            
         relation_definition_dict = llm_utils.parse_relation_definition(completion)
         return relation_definition_dict

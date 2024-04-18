@@ -1,0 +1,159 @@
+creator,The subject entity is the creator/author of the object.
+broadcastedBy,The subject entity is broadcasted or aired by the object entity.
+firstAired,The subject entity is first aired on the date specified by the object entity.
+established,The subject entity was established or created in the year specified by the object entity.
+location,The subject entity is located in the place specified by the object entity.
+municipality,The subject entity is located in the municipality specified by the object entity.
+category,The subject entity falls under the category specified by the object entity.
+hasToItsNorth,The subject entity has the object entity located to its north.
+country,The subject entity is located in the country specified by the object entity.
+governmentType,The subject entity operates under the form of government specified by the object entity.
+address,The subject entity is located at the address specified by the object.
+currentTenants,The subject entity is currently occupied or used by the object entity.
+owner,The subject entity is owned by the object entity.
+operatingOrganisation,The subject entity is operated or managed by the object entity.
+runwayLength,The subject entity has a runway length as specified by the object.
+birthDate,The subject entity was born on the date specified by the object entity.
+nationality,The subject entity holds the nationality specified by the object entity.
+deathPlace,The subject entity died in the location specified by the object entity.
+selectedByNasa,The subject entity was selected by NASA in the year specified by the object entity.
+birthPlace,The subject entity was born in the location specified by the object entity.
+occupation,The subject entity has the job or profession specified by the object entity.
+icaoLocationIdentifier,The subject entity has an ICAO location identifier as specified by the object.
+elevationAboveTheSeaLevel,The subject entity is located at the height specified by the object entity above sea level.
+league,The subject entity participates or competes in the league specified by the object entity.
+champions,The subject entity was won or was championed by the object entity.
+numberOfMembers,The subject entity has the number of members as specified by the object entity.
+ground,The subject entity uses the facility or location specified by the object entity as their home ground or base.
+affiliation,The subject entity is affiliated or associated with the object entity.
+city,The subject entity is located in the city specified by the object entity.
+leader,The subject entity is led or governed by the object entity.
+course,The subject entity is typically served during the meal course specified by the object entity.
+instrument,The subject entity plays the instrument specified by the object entity.
+associatedBand/associatedMusicalArtist,The subject entity is or was associated with the band or musical artist specified by the object entity.
+activeYearsStartYear,The subject entity started their active career in the year specified by the object entity.
+foundingDate,The subject entity was established or founded on the date specified by the object entity.
+product,The subject entity produces or manufactures the object entity.
+industry,The subject entity operates in the industry specified by the object entity.
+architect,The subject entity was designed or planned by the object entity.
+currency,The subject entity uses the object entity as its official form of monetary exchange.
+demonym,The subject entity's inhabitants are referred to by the term specified by the object entity.
+mainIngredient,The subject entity is primarily made up of the ingredients specified by the object entity.
+mission,The subject entity participated in the event or operation specified by the object entity.
+region,The subject entity is found or originated in the region specified by the object entity.
+spouse,The subject entity is married to the person specified by the object entity.
+inOfficeWhilePresident,The subject entity held office during the presidency of the person specified by the object entity.
+keyPerson,The subject entity has the object entity as a significant or influential individual.
+type,The subject entity is classified or categorized as the type specified by the object entity.
+youthclub,The subject entity was associated with the object entity during their early or formative years.
+club,The subject entity was previously associated with or played for the object entity.
+populationMetro,The subject entity has a metropolitan population as specified by the object entity.
+leaderTitle,The subject entity is led or governed by the role specified by the object entity.
+populationDensity,The subject entity has a population density as specified by the object entity.
+apoapsis,"The subject entity has an apoapsis, the point in its orbit farthest from the body it is orbiting, as specified by the object entity."
+orbitalPeriod,The subject entity has an orbital period as specified by the object entity.
+discoverer,The subject entity was discovered by the object entity.
+absoluteMagnitude,"The subject entity has an absolute magnitude, a measure of intrinsic brightness, as specified by the object entity."
+discovered,The subject entity was discovered on the date specified by the object entity.
+rotationPeriod,The subject entity has a rotation period as specified by the object.
+deathDate,The subject entity died on the date specified by the object entity.
+training,The subject entity received education or training at the institution specified by the object entity.
+professionalField,The subject entity is a professional in the field specified by the object entity.
+isPartOf,The subject entity is a part of or located within the object entity.
+productionStartYear,The subject entity started its production in the year specified by the object entity.
+assembly,The subject entity was assembled or manufactured in the location specified by the object entity.
+productionEndYear,The subject entity ended its production in the year specified by the object entity.
+runwayName,The subject entity has a runway named as specified by the object.
+currentteam,The subject entity is currently a part of or plays for the object entity.
+debutTeam,The subject entity started their professional career with the object entity as their first team.
+weight,The subject entity has a weight as specified by the object entity.
+buildingStartDate,The construction of the subject entity started on the date specified by the object.
+completionDate,The subject entity was completed or finished on the date specified by the object entity.
+state,The subject entity is located in the state specified by the object entity.
+hasToItsSoutheast,The subject entity has the object entity located to its southeast.
+periapsis,"The subject entity has a periapsis, the point in its orbit closest to the object it is orbiting, as specified by the object entity."
+genre,The subject entity is associated with the music genre specified by the object entity.
+status,The subject entity holds the status specified by the object entity.
+almaMater,The subject entity received education or graduated from the institution specified by the object entity.
+award,The subject entity was awarded or honored with the award specified by the object entity.
+ethnicGroup,The subject entity has the object entity as one of its ethnic groups.
+campus,The subject entity is located at the campus address specified by the object entity.
+cityServed,The subject entity provides services to the location or entity specified by the object.
+dishVariation,The subject entity has a variation or type which is specified by the object entity.
+ingredient,The subject entity contains or is made with the ingredient specified by the object entity.
+timeZone,The subject entity is located in the time zone specified by the object entity.
+foundedBy,The subject entity was established or founded by the object entity.
+epoch,"The subject entity has an epoch, a specific point in time used as a reference point for some time-varying astronomical quantity, as specified by the object entity."
+engine,The subject entity is equipped with or uses the type of engine specified by the object entity.
+powerType,The subject entity uses the type of power or energy specified by the object entity.
+length,The subject entity has a length as specified by the object entity.
+numberOfUndergraduateStudents,The subject entity has the number of undergraduate students as specified by the object entity.
+staff,The subject entity has the number of staff members as specified by the object entity.
+numberOfStudents,The subject entity has the total number of students as specified by the object entity.
+numberOfDoctoralStudents,The subject entity has the number of doctoral students as specified by the object entity.
+numberOfPostgraduateStudents,The subject entity has the number of postgraduate students as specified by the object entity.
+dateOfRetirement,The subject entity retired on the date specified by the object entity.
+numberOfPages,The subject entity has a total number of pages as specified by the object entity.
+author,The subject entity was written or created by the object entity.
+areaCode,The subject entity has the area code specified by the object entity.
+season,The subject entity participated in the season specified by the object entity.
+subsidiary,The subject entity owns or controls the object entity as a subsidiary.
+revenue,The subject entity generates the amount of income specified by the object entity.
+nickname,The subject entity is also known or referred to by the name specified by the object entity.
+height,The subject entity has a height as specified by the object.
+currentclub,The subject entity is currently associated with or plays for the object entity.
+starring,The subject entity features the object entity as a performer or actor.
+utcOffset,The subject entity is located in the time zone with the UTC offset specified by the object entity.
+publisher,The subject entity was published by the object entity.
+literaryGenre,The subject entity belongs to the literary genre specified by the object entity.
+followedBy,The subject entity is followed by the object entity in a sequence or series.
+precededBy,The subject entity is preceded by the object entity in a sequence or series.
+builder,The subject entity was built or manufactured by the object entity.
+cylinderCount,The subject entity has the number of cylinders specified by the object entity.
+origin,The subject entity originates or comes from the place specified by the object entity.
+child,The subject entity is a parent to the object entity.
+foundationPlace,The subject entity was founded or established in the location specified by the object entity.
+numberOfEmployees,The subject entity has the number of employees as specified by the object entity.
+bodyStyle,The subject entity has the body style or design as specified by the object entity.
+runwaySurfaceType,The subject entity has a runway surface made of the material specified by the object.
+director,The subject entity is directed or managed by the person specified by the object entity.
+wasGivenTheTechnicalCampusStatusBy,The subject entity was granted the status of a technical campus by the object entity.
+hasToItsWest,The subject entity has the object entity located to its west.
+designer,The subject entity was designed or created by the object entity.
+netIncome,The subject entity has a net income as specified by the object entity.
+buildDate,The subject entity was built or produced during the time period specified by the object entity.
+successor,The subject entity was succeeded in their position by the person specified by the object entity.
+party,The subject entity is or was a member of the political party specified by the object entity.
+senators,The subject entity is represented by the object entity in a legislative body.
+manager,The subject entity is managed or overseen by the object entity.
+hasToItsSouthwest,The subject entity has the object entity to its southwest.
+lastAired,The subject entity was last aired on the date specified by the object entity.
+foundingYear,The subject entity was founded in the year specified by the object entity.
+releaseDate,The subject entity was released or published on the date specified by the object entity.
+longName,The subject entity is officially or formally known by the name specified by the object entity.
+language,The subject entity uses the language specified by the object entity.
+formerTeam,"The subject entity was previously a part of the object entity, but is no longer associated with them."
+areaTotal,The subject entity has a total area as specified by the object.
+manufacturer,The subject entity is manufactured or produced by the object entity.
+anthem,The subject entity has the song specified by the object entity as its official anthem or national song.
+servedAsChiefOfTheAstronautOfficeIn,The subject entity served as the Chief of the Astronaut Office in the year specified by the object entity.
+fullName,The subject entity is officially known or recognized by the name specified by the object entity.
+firstAppearanceInFilm,The subject entity made its first appearance in the film specified by the object entity.
+series,The subject entity is part of the film or series specified by the object entity.
+regionServed,The subject entity provides services or operates in the region specified by the object entity.
+office,The subject entity held or currently holds the official position specified by the object entity.
+populationTotal,The subject entity has a total population as specified by the object entity.
+tenant,The subject entity is occupied or used by the object entity.
+bird,The subject entity is home to the bird species specified by the object entity.
+coach,The subject entity is coached or managed by the object entity.
+postalCode,The subject entity has the postal code specified by the object entity.
+extinctionDate,The subject entity ceased to exist or became extinct on the date specified by the object entity.
+cosparId,The subject entity is identified by the COSPAR ID specified by the object entity.
+service,The subject entity provides the service specified by the object entity.
+draftPick,The subject entity was selected as the number specified by the object entity in a draft.
+academicStaffSize,The subject entity has an academic staff of the size specified by the object entity.
+sportsOffered,The subject entity offers the sport specified by the object entity as part of its activities.
+parentCompany,The subject entity is owned or controlled by the object entity.
+founder,The subject entity was founded or established by the person specified by the object entity.
+president,The subject entity is presided over by the person specified by the object entity.
+ceremonialCounty,The subject entity is part of the ceremonial county specified by the object entity.

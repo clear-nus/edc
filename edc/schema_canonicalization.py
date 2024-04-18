@@ -7,6 +7,7 @@ from edc.utils.e5_mistral_utils import MistralForSequenceEmbedding
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import numpy as np
 import copy
+from tqdm import tqdm
 
 
 class SchemaCanonicalizer:
@@ -27,29 +28,30 @@ class SchemaCanonicalizer:
         self.verifier_model = verifier_model
         self.verifier_tokenizer = verifier_tokenizer
         self.verifier_openai_model = verifier_openai_model
-        self.target_schema_dict = target_schema_dict
+        self.schema_dict = target_schema_dict
 
         self.embedding_model = embedding_model
         self.embedding_tokenizer = embedding_tokenizer
 
         # Embed the target schema
 
-        self.target_schema_embedding_dict = {}
+        self.schema_embedding_dict = {}
 
-        for relation, relation_definition in target_schema_dict.items():
+        print("Embedding target schema...")
+        for relation, relation_definition in tqdm(target_schema_dict.items()):
             embedding = llm_utils.get_embedding_e5mistral(
                 self.embedding_model,
                 self.embedding_tokenizer,
                 relation_definition,
             )
-            self.target_schema_embedding_dict[relation] = embedding
+            self.schema_embedding_dict[relation] = embedding
 
         # Load the model
         pass
 
     def retrieve_similar_relations(self, query_relation_definition: str, top_k=5):
-        target_relation_list = list(self.target_schema_embedding_dict.keys())
-        target_relation_embedding_list = list(self.target_schema_embedding_dict.values())
+        target_relation_list = list(self.schema_embedding_dict.keys())
+        target_relation_embedding_list = list(self.schema_embedding_dict.values())
 
         query_embedding = llm_utils.get_embedding_e5mistral(
             self.embedding_model,
@@ -63,7 +65,7 @@ class SchemaCanonicalizer:
         highest_score_indices = np.argsort(-scores)
 
         return {
-            target_relation_list[idx]: self.target_schema_dict[target_relation_list[idx]]
+            target_relation_list[idx]: self.schema_dict[target_relation_list[idx]]
             for idx in highest_score_indices[:top_k]
         }, [scores[idx] for idx in highest_score_indices[:top_k]]
 
@@ -109,11 +111,21 @@ class SchemaCanonicalizer:
                 answer_prepend="Answer: ",
             )[0]
         else:
-            verificaiton_result = llm_utils.openai_chat_completion(self.model_name, None, messages)
+            verificaiton_result = llm_utils.openai_chat_completion(
+                self.verifier_openai_model, None, messages, max_tokens=1
+            )
 
-        print(verificaiton_result)
+        # print(verification_prompt)
+
+        # print(verificaiton_result)
+        # print(canonicalized_triplet)
+        # print(choices)
+        # print(verificaiton_result[0])
+        # print(candidate_relations)
         if verificaiton_result[0] in choice_letters_list:
-            canonicalized_triplet[1] = candidate_relations[choices.index(verificaiton_result[0])]
+            canonicalized_triplet[1] = candidate_relations[choice_letters_list.index(verificaiton_result[0])]
+        else:
+            return None
 
         return canonicalized_triplet
 
@@ -125,13 +137,36 @@ class SchemaCanonicalizer:
         verify_prompt_template: str,
         enrich=False,
     ):
-        candidate_relations, candidate_scores = self.retrieve_similar_relations(open_relation_definition_dict)
-        canonicalized_triplet = self.llm_verify(
-            input_text_str,
-            open_triplet,
-            open_relation_definition_dict[open_triplet[1]],
-            verify_prompt_template,
-            candidate_relations,
-            None,
-        )
+        open_relation = open_triplet[1]
+
+        if open_relation in self.schema_dict:
+            # The relation is already canonical
+            return open_triplet
+
+        if len(self.schema_dict) != 0:
+            candidate_relations, candidate_scores = self.retrieve_similar_relations(open_relation_definition_dict)
+
+            if open_relation not in open_relation_definition_dict:
+                canonicalized_triplet = None
+            else:
+                canonicalized_triplet = self.llm_verify(
+                    input_text_str,
+                    open_triplet,
+                    open_relation_definition_dict[open_relation],
+                    verify_prompt_template,
+                    candidate_relations,
+                    None,
+                )
+        else:
+            canonicalized_triplet = None
+        
+        if canonicalized_triplet is None:
+            # Cannot be canonicalized
+            if enrich:
+                self.schema_dict[open_relation] = open_relation_definition_dict[open_relation]
+                embedding = llm_utils.get_embedding_e5mistral(
+                    self.embedding_model, self.embedding_tokenizer, open_relation_definition_dict[open_relation]
+                )
+                self.schema_embedding_dict[open_relation] = embedding
+                canonicalized_triplet = open_triplet
         return canonicalized_triplet

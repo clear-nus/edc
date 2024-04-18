@@ -1,0 +1,59 @@
+Example 1:
+Text: Romany Love is a 1931 British musical film directed by Fred Paul and starring Esmond Knight, Florence McHugh and Roy Travers.
+Triples: [['Romany Love', 'publication date', '1931'], ['Romany Love', 'genre', 'musical film'], ['Romany Love', 'director', 'Fred Paul'], ['Romany Love', 'cast member', 'Esmond Knight']]
+Relations: ['publication date', 'genre', 'director', 'cast member']
+Answer: 
+publication date: The subject entity was published or released on the date specified by the object entity.
+genre: The subject entity belongs to the genre specified by the object entity.
+director: The subject entity was directed by the person or entity specified by the object entity.
+cast member: The subject entity includes the person specified by the object entity as a member of its cast.
+
+Example 2:
+Text: Monopoly Star Wars is the 1997 Monopoly franchise Star Wars video game based on the board game and set in the Star Wars fictional universe.
+Triples: [['Monopoly Star Wars', 'publication date', '1997'], ['Monopoly Star Wars', 'genre', 'Monopoly'], ['Monopoly Star Wars', 'media franchise', 'Star Wars'], ['Monopoly Star Wars', 'instance of', 'video game']]
+Relations: ['publication date', 'genre', 'media franchise', 'instance of']
+Answer:
+publication date: The subject entity was published or released on the date specified by the object entity.
+genre: The subject entity belongs to the genre specified by the object entity.
+media franchise: The subject entity is a part of the media franchise specified by the object entity.
+instance of: The subject entity is an instance or example of the type specified by the object entity.
+
+Example 3:
+Text: Josef Schäffer (born July 2, 1891 in Moravia) was an Austrian track and field athlete who competed in the 1912 Summer Olympics.
+Triples: [['Josef Schäffer', 'date of birth', 'July 2, 1891'], ['Josef Schäffer', 'place of birth', 'Moravia'], ['Josef Schäffer', 'participant in', '1912 Summer Olympics'], ['1912 Summer Olympics', 'point in time', '1912']]
+Relations: ['date of birth', 'place of birth', 'participant in', 'point in time']
+Answer:
+date of birth: The subject entity was born on the date specified by the object entity.
+place of birth: The subject entity was born in the location specified by the object entity.
+participant in: The subject entity took part in the event specified by the object entity.
+point in time: The object entity specifies a specific point in time the subject entity took place in.
+
+Example 4:
+Text: Sam Cross (born 26 August 1992) is a Welsh rugby union player who plays for Wales and club rugby for the Ospreys as a flanker.
+Triples: [['Sam Cross', 'date of birth', '26 August 1992'], ['Sam Cross', 'position played on team / speciality', 'flanker'], ['Ospreys', 'sport', 'rugby union'], ['flanker', 'part of', 'rugby union']]
+Relations: ['date of birth', 'position played on team / speciality', 'sport', 'part of']
+Answer:
+date of birth: The subject entity was born on the date specified by the object entity.
+position played on team / speciality: The subject entity plays the specified position or has the specified speciality on the team.
+sport: The subject entity is associated with the sport specified by the object entity.
+part of: The subject entity is a part of or belongs to the object entity.
+
+Example 5:
+Text: Ondel-ondel is a large puppet figure featured in Betawi folk performance of Jakarta, Indonesia.
+Triples: [['Betawi', 'location', 'Jakarta'], ['Jakarta', 'country', 'Indonesia'], ['Indonesia', 'ethnic group', 'Betawi'], ['Indonesia', 'contains administrative territorial entity', 'Jakarta']]
+Relations: ['location', 'country', 'ethnic group', 'contains administrative territorial entity']
+Answer:
+location: The subject entity is located in the place specified by the object entity.
+country: The subject entity is located in the country specified by the object entity.
+ethnic group: The subject entity contains the ethnic group specified by the object entity.
+contains administrative territorial entity: The subject entity contains the administrative territorial entity specified by the object entity.
+
+Example 6:
+Text: George M. Coombs (November 27, 1851 – March 27, 1909) was an American architect from Maine.
+Triples: [['George M. Coombs', 'date of birth', 'November 27, 1851'], ['George M. Coombs', 'date of death', 'March 27, 1909'], ['American', 'contains administrative territorial entity', 'Maine'], ['Maine', 'country', 'American']]
+Relations: ['date of birth', 'date of death', 'contains administrative territorial entity', 'country']
+Answer:
+date of birth: The subject entity was born on the date specified by the object entity.
+date of death: The subject entity died on the date specified by the object entity.
+contains administrative territorial entity: The subject entity contains or is a part of the administrative territorial entity specified by the object entity.
+country: The subject entity is located in the country specified by the object entity.

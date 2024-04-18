@@ -32,14 +32,14 @@ class EntityExtractor:
                 [messages], self.model, self.tokenizer, device=self.model.device, answer_prepend="Entities: "
             )[0]
         else:
-            completion = llm_utils.openai_chat_completion(self.model_name, None, messages)
-        extracted_triplets_list = llm_utils.parse_raw_triplets(completion)
-        return extracted_triplets_list
+            completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
+        extracted_entities = llm_utils.parse_raw_entities(completion)
+        return extracted_entities
 
     def merge_entities(
         self, input_text: str, entity_list_1: List[str], entity_list_2: List[str], prompt_template_str: str
     ):
-        filled_prompt = prompt_template_str.format(
+        filled_prompt = prompt_template_str.format_map(
             {"input_text": input_text, "entity_list_1": entity_list_1, "entity_list_2": entity_list_2}
         )
         messages = [{"role": "user", "content": filled_prompt}]
@@ -50,9 +50,9 @@ class EntityExtractor:
                 [messages], self.model, self.tokenizer, device=self.model.device, answer_prepend="Answer: "
             )[0]
         else:
-            completion = llm_utils.openai_chat_completion(self.model_name, None, messages)
-        extracted_triplets_list = llm_utils.parse_raw_triplets(completion)
-        return extracted_triplets_list
+            completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
+        extracted_entities = llm_utils.parse_raw_entities(completion)
+        return extracted_entities
 
     def retrieve_relevant_relations(self, query_input_text: str, top_k=10):
         target_relation_list = list(self.target_schema_embedding_dict.keys())

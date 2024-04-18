@@ -1,0 +1,23 @@
+Example 1:
+Text: Lyseren is a lake in the municipalities of Enebakk in Akershus county and Spydeberg in Østfold county , Norway .
+Entities: ['Lyseren', 'Norway', 'Enebakk', 'Spydeberg']
+
+Example 2:
+Text: Varavu Nalla Uravu is a 1990 Indian Tamil film , directed by Visu and produced by Rajam Balachandar .
+Entities: ['Visu', 'Varavu Nalla Uravu']
+
+Example 3:
+Text: Batura III , also known as Batura Muztagh III , is a peak in Batura Muztagh of Pakistan , which is the westernmost subrange of the Karakoram range .
+Entities: ['Karakoram', 'Batura III', 'Pakistan']
+
+Example 4:
+Text: Ramakuppam is a village in Chittoor district of the Indian state of Andhra Pradesh .
+Entities: ['Andhra Pradesh', 'Ramakuppam', 'India', 'Chittoor district']
+
+Example 5:
+Text: Kurniwadi is a village in Belgaum district in Karnataka , India .
+Entities: ['Belgaum district', 'Karnataka', 'India', 'Kurniwadi']
+
+Example 6:
+Text: Stadion Rankhof is a football stadium in Basel , Switzerland .
+Entities: ['Switzerland', 'Stadion Rankhof', 'Basel']

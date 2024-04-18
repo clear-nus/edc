@@ -37,14 +37,12 @@ class Extractor:
 
         messages = [{"role": "user", "content": filled_prompt}]
 
-        print(messages)
-
         if self.openai_model is None:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
             completion = llm_utils.generate_completion_transformers(
                 [messages], self.model, self.tokenizer, device=self.model.device, answer_prepend="Triplets: "
             )[0]
         else:
-            completion = llm_utils.openai_chat_completion(self.model_name, None, messages)
+            completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
         extracted_triplets_list = llm_utils.parse_raw_triplets(completion)
         return extracted_triplets_list

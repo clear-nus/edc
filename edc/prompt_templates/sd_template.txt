@@ -1,0 +1,9 @@
+You will be given a piece of text and a list of relational triples in the format of [Subject, Relation, Object] extracted from the text. For each relation present in the triples, your task is to write a description to express the meaning of the relation.
+
+Here are some examples:
+{few_shot_examples}
+
+Now please extract relation descriptions given the following text and triples. Note that the description needs to be general and can be used to describe relations between other entities as well. Pay attention to the order of subject and object entities.
+Text: {text}
+Triples: {triples}
+Relations: {relations}
