@@ -19,7 +19,7 @@ def read_tekgen(tekgen_path):
             line_json_dict = json.loads(l)
             triples = line_json_dict["triples"]
             text = line_json_dict["sentence"]
-            
+
             skip_flag = False
             for triple in triples:
                 # skip quadruples
@@ -115,14 +115,6 @@ def collect_samples(df, dataset_size):
                 aggregated_relation_definition_dict[relation] = [definition]
             else:
                 aggregated_relation_definition_dict[relation].append(definition)
-    # for relation in aggregated_relation_definition_dict.keys():
-    #     if len(aggregated_relation_definition_dict[relation]) != 1:
-    #         descr = aggregated_relation_definition_dict[relation]
-    #         counter = Counter(descr)
-    #         most_common_definition, freq = counter.most_common(1)[0]
-    #         aggregated_relation_definition_dict[relation] = most_common_definition
-    #     else:
-    #         aggregated_relation_definition_dict[relation] = aggregated_relation_definition_dict[relation][0]
 
     for row_idx, row in df.iterrows():
         text = row["text"]
@@ -194,7 +186,6 @@ if __name__ == "__main__":
     output_path = args.output_path
 
     entries = read_tekgen(tekgen_path)
-    
 
     if not os.path.exists(relation_definition_csv_path):
         crawl_relation_definitions(entries, relation_definition_csv_path)
