@@ -1,11 +1,15 @@
 from argparse import ArgumentParser
 from edc.edc_framework import EDC
+import os
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     # OIE module setting
-    parser.add_argument("--oie_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for open information extraction.")
+    parser.add_argument(
+        "--oie_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for open information extraction."
+    )
     parser.add_argument(
         "--oie_prompt_template_file_path",
         default="./prompt_templates/oie_template.txt",
@@ -18,7 +22,9 @@ if __name__ == "__main__":
     )
 
     # Schema Definition setting
-    parser.add_argument("--sd_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for schema definition.")
+    parser.add_argument(
+        "--sd_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for schema definition."
+    )
     parser.add_argument(
         "--sd_prompt_template_file_path",
         default="./prompt_templates/sd_template.txt",
@@ -31,7 +37,11 @@ if __name__ == "__main__":
     )
 
     # Schema Canonicalization setting
-    parser.add_argument("--sc_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for schema canonicaliztion verification.")
+    parser.add_argument(
+        "--sc_llm",
+        default="mistralai/Mistral-7B-Instruct-v0.2",
+        help="LLM used for schema canonicaliztion verification.",
+    )
     parser.add_argument(
         "--sc_prompt_template_file_path",
         default="./prompt_templates/sc_template.txt",
@@ -50,7 +60,9 @@ if __name__ == "__main__":
         default="./few_shot_examples/default/oie_few_shot_refine_examples.txt",
         help="Few shot examples used for refined open information extraction.",
     )
-    parser.add_argument("--ee_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for entity extraction.")
+    parser.add_argument(
+        "--ee_llm", default="mistralai/Mistral-7B-Instruct-v0.2", help="LLM used for entity extraction."
+    )
     parser.add_argument(
         "--ee_prompt_template_file_path",
         default="./prompt_templates/ee_template.txt",
@@ -93,5 +105,5 @@ if __name__ == "__main__":
     print(args)
     edc = EDC(**args)
 
-    input_text_list = open(args["input_text_file_path"], "r").readlines()[:5]
+    input_text_list = open(args["input_text_file_path"], "r").readlines()
     output_kg = edc.extract_kg(input_text_list, args["output_dir"], refinement_iterations=args["refinement_iterations"])

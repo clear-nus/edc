@@ -15,6 +15,7 @@ from functools import partial
 
 print_flushed = partial(print, flush=True)
 
+
 class EDC:
     def __init__(self, **edc_configuration) -> None:
 
@@ -55,7 +56,7 @@ class EDC:
                 self.schema[relation] = relation_definition
         else:
             self.schema = {}
-            
+
         # Load the needed models and tokenizers
         needed_model_set = set([self.oie_llm_name, self.sd_llm_name, self.sc_llm_name, self.ee_llm_name])
 
@@ -253,9 +254,10 @@ class EDC:
 
         if output_dir is not None:
             with open(os.path.join(output_dir, "edc_output.txt"), "w") as f:
-                f.writelines([str(l) for l in canonicalized_triplets_list])
+                for l in canonicalized_triplets_list:
+                    f.write(str(l) + "\n")
                 f.flush()
-                
+
             if self.enrich_schema:
                 with open(os.path.join(output_dir, "edc_updated_schema.csv"), "w") as f:
                     writer = csv.writer(f)
@@ -271,8 +273,9 @@ class EDC:
             output_kg_list.append(canonicalized_triplets_list)
             if output_dir is not None:
                 with open(os.path.join(output_dir, f"edc_output_refinement_{iteration + 1}.txt"), "w") as f:
-                    f.writelines([str(l) for l in canonicalized_triplets_list])
-                    f.flush()
+                    for l in canonicalized_triplets_list:
+                        f.write(str(l) + "\n")
+                f.flush()
                 if self.enrich_schema:
                     with open(os.path.join(output_dir, f"edc_updated_schema_{iteration + 1}.csv"), "w") as f:
                         writer = csv.writer(f)

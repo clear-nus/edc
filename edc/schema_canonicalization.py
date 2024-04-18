@@ -159,7 +159,7 @@ class SchemaCanonicalizer:
                 )
         else:
             canonicalized_triplet = None
-        
+
         if canonicalized_triplet is None:
             # Cannot be canonicalized
             if enrich:
