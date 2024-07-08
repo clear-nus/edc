@@ -42,8 +42,8 @@ to prepare a dataset and refer to [this repository](https://github.com/kamalkraj
 Install requirements using a conda environment:
 
 ```
-conda env create -f environment.yaml
-conda activate edc
+conda env create -f environment.yml
+conda activate edc-new
 ```
 
 ## Usage Instructions
