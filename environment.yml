@@ -1,4 +1,4 @@
-name: edc-new
+name: edc
 channels:
   - defaults
 dependencies:
