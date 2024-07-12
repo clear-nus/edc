@@ -67,7 +67,8 @@ def convert_to_xml(result_path: str, gold_path: str, max_length_diff=None):
         length_diff = abs(len(collected_gold_triplets[idx]) - len(collected_pred_triplets[idx]))
 
         if max_length_diff is not None:
-            if length_diff > max_length_diff:
+            if length_diff > int(max_length_diff):
+                skipped += 1
                 continue
 
         pred_entry_node = ET.SubElement(pred_entries_node, "entry")
@@ -563,7 +564,6 @@ def evaluaterefcand(reference, candidate):
     evaluator = Evaluator([allrefdict], [allcanddict], tags=["SUB", "PRED", "OBJ"])
 
     # Returns overall metrics and metrics for each tag
-
     results, results_per_tag = evaluator.evaluate()
 
     return results, results_per_tag
