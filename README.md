@@ -1,5 +1,7 @@
 # Extract, Define, Canonicalize: An LLM-based Framework for Knowledge Graph Construction
 
+**For those interested in this work, we are currently working on an update to the code and we will release soon.**
+
 This reposistory contains the implementation of the knowledge graph construction framework EDC proposed in the paper [Extract, Define, Canonicalize: An LLM-based Framework for Knowledge Graph Construction](https://arxiv.org/abs/2404.03868).
 ```
 @article{zhang2024extract,
