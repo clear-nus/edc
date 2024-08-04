@@ -12,28 +12,34 @@ import os
 import csv
 import pathlib
 from functools import partial
+import copy
+import logging
+from sentence_transformers import SentenceTransformer
+from importlib import reload
 
-print_flushed = partial(print, flush=True)
+reload(logging)
+logging.basicConfig(level=logging.NOTSET)
+logger = logging.getLogger(__name__)
 
 
 class EDC:
     def __init__(self, **edc_configuration) -> None:
-
-        # OIE module setting
+        # OIE module settings
         self.oie_llm_name = edc_configuration["oie_llm"]
         self.oie_prompt_template_file_path = edc_configuration["oie_prompt_template_file_path"]
         self.oie_few_shot_example_file_path = edc_configuration["oie_few_shot_example_file_path"]
 
-        # Schema Definition module setting
+        # Schema Definition module settings
         self.sd_llm_name = edc_configuration["sd_llm"]
         self.sd_template_file_path = edc_configuration["sd_prompt_template_file_path"]
         self.sd_few_shot_example_file_path = edc_configuration["sd_few_shot_example_file_path"]
 
-        # Schema Canonicalization module setting
+        # Schema Canonicalization module settings
         self.sc_llm_name = edc_configuration["sc_llm"]
+        self.sc_embedder_name = edc_configuration["sc_embedder"]
         self.sc_template_file_path = edc_configuration["sc_prompt_template_file_path"]
 
-        # Refinement setting
+        # Refinement settings
         self.sr_adapter_path = edc_configuration["sr_adapter_path"]
 
         self.oie_r_prompt_template_file_path = edc_configuration["oie_refine_prompt_template_file_path"]
@@ -58,84 +64,151 @@ class EDC:
             self.schema = {}
 
         # Load the needed models and tokenizers
-        needed_model_set = set([self.oie_llm_name, self.sd_llm_name, self.sc_llm_name, self.ee_llm_name])
+        self.needed_model_set = set(
+            [self.oie_llm_name, self.sd_llm_name, self.sc_llm_name, self.sc_embedder_name, self.ee_llm_name]
+        )
 
-        print_flushed(f"Models used: {needed_model_set}")
-        print_flushed("Loading models...")
-        for model_name in needed_model_set:
-            if not llm_utils.is_model_openai(model_name):
-                needed_model_dict = {
-                    model_name: (
-                        AutoModelForCausalLM.from_pretrained(model_name, device_map="auto"),
-                        AutoTokenizer.from_pretrained(model_name),
-                    )
-                }
+        self.loaded_model_dict = {}
 
-        # Initialize the components
+        # print_flushed(f"Models used: {needed_model_set}")
+        # print_flushed("Loading models...")
+        logger.info(f"Model used: {self.needed_model_set}")
 
-        # Initialize the extractor
+    def oie(
+        self, input_text_list: List[str], previous_extracted_triplets_list: List[List[str]] = None, free_model=False
+    ):
         if not llm_utils.is_model_openai(self.oie_llm_name):
-            extractor = Extractor(
-                model=needed_model_dict[self.oie_llm_name][0], tokenizer=needed_model_dict[self.oie_llm_name][1]
-            )
+            # Load the HF model for OIE
+            logger.info(f"Loading OIE model {self.oie_llm_name}")
+            if self.oie_llm_name not in self.loaded_model_dict:
+                oie_model, oie_tokenizer = (
+                    AutoModelForCausalLM.from_pretrained(self.oie_llm_name, device_map="auto"),
+                    AutoTokenizer.from_pretrained(self.oie_llm_name),
+                )
+                self.loaded_model_dict[self.oie_llm_name] = (oie_model, oie_tokenizer)
+            else:
+                logger.info(f"Model {self.oie_llm_name} is already loaded, reusing it.")
+                oie_model, oie_tokenizer = self.loaded_model_dict[self.oie_llm_name]
+            extractor = Extractor(oie_model, oie_tokenizer)
         else:
             extractor = Extractor(openai_model=self.oie_llm_name)
 
-        # Initialize the schema definer
+        oie_triples_list = []
+        if previous_extracted_triplets_list is not None:
+            # Refined OIE
+            logger.info("Running Refined OIE...")
+            raise NotImplementedError
+        else:
+            # Normal OIE
+            logger.info("Running OIE...")
+            oie_few_shot_examples_str = open(self.oie_few_shot_example_file_path).read()
+            oie_few_shot_prompt_template_str = open(self.oie_prompt_template_file_path).read()
+
+            for input_text in tqdm(input_text_list):
+                oie_triples = extractor.extract(input_text, oie_few_shot_examples_str, oie_few_shot_prompt_template_str)
+                oie_triples_list.append(oie_triples)
+                logger.debug(f"{input_text}\n -> {oie_triples}\n")
+
+        logger.info("OIE finished.")
+
+        if free_model:
+            llm_utils.free_model(oie_model, oie_tokenizer)
+            del self.loaded_model_dict[self.oie_llm_name]
+
+        return oie_triples_list
+
+    def schema_definition(self, input_text_list: List[str], oie_triplets_list: List[List[str]], free_model=False):
+        assert len(input_text_list) == len(oie_triplets_list)
+
         if not llm_utils.is_model_openai(self.sd_llm_name):
-            schema_definer = SchemaDefiner(
-                model=needed_model_dict[self.sd_llm_name][0],
-                tokenizer=needed_model_dict[self.sd_llm_name][1],
-            )
+            # Load the HF model for Schema Definition
+            if self.sd_llm_name not in self.loaded_model_dict:
+                logger.info(f"Loading Schema Definition model {self.sd_llm_name}")
+                sd_model, sd_tokenizer = (
+                    AutoModelForCausalLM.from_pretrained(self.sd_llm_name, device_map="auto"),
+                    AutoTokenizer.from_pretrained(self.sd_llm_name),
+                )
+                self.loaded_model_dict[self.sd_llm_name] = (sd_model, sd_tokenizer)
+            else:
+                logger.info(f"Model {self.sd_llm_name} is already loaded, reusing it.")
+                sd_model, sd_tokenizer = self.loaded_model_dict[self.sd_llm_name]
+            schema_definer = SchemaDefiner(model=sd_model, tokenizer=sd_tokenizer)
         else:
             schema_definer = SchemaDefiner(openai_model=self.sd_llm_name)
 
-        # Initialize the schema canonicalizer
-        schema_canonicalization_embedding_model = MistralForSequenceEmbedding.from_pretrained(
-            "intfloat/e5-mistral-7b-instruct", device_map="auto"
+        schema_definition_few_shot_prompt_template_str = open(self.sd_template_file_path).read()
+        schema_definition_few_shot_examples_str = open(self.sd_few_shot_example_file_path).read()
+        schema_definition_dict_list = []
+
+        logger.info("Running Schema Definition...")
+        for idx, oie_triplets in enumerate(tqdm(oie_triplets_list)):
+            schema_definition_dict = schema_definer.define_schema(
+                input_text_list[idx],
+                oie_triplets,
+                schema_definition_few_shot_examples_str,
+                schema_definition_few_shot_prompt_template_str,
+            )
+            schema_definition_dict_list.append(schema_definition_dict)
+            logger.debug(f"{input_text_list[idx]}, {oie_triplets}\n -> {schema_definition_dict}\n")
+
+        logger.info("Schema Definition finished.")
+        if free_model:
+            llm_utils.free_model(sd_model)
+            del self.loaded_model_dict[self.sd_llm_name]
+        return schema_definition_dict_list
+
+    def schema_canonicalization(
+        self,
+        input_text_list: List[str],
+        oie_triplets_list: List[List[str]],
+        schema_definition_dict_list: List[dict],
+        free_model=False,
+    ):
+        assert len(input_text_list) == len(oie_triplets_list) and len(input_text_list) == len(
+            schema_definition_dict_list
         )
-        schema_canonicalization_embedding_tokenizer = AutoTokenizer.from_pretrained("intfloat/e5-mistral-7b-instruct")
+        logger.info("Running Schema Canonicalization...")
+
+        sc_verify_prompt_template_str = open(self.sc_template_file_path).read()
+
+        sc_embedder = SentenceTransformer(self.sc_embedder_name)
 
         if not llm_utils.is_model_openai(self.sc_llm_name):
-            schema_canonicalizer = SchemaCanonicalizer(
-                self.schema,
-                schema_canonicalization_embedding_model,
-                schema_canonicalization_embedding_tokenizer,
-                verifier_model=needed_model_dict[self.sc_llm_name][0],
-                verifier_tokenizer=needed_model_dict[self.sc_llm_name][1],
-            )
+            if self.sc_llm_name not in self.loaded_model_dict:
+                logger.info(f"Loading Schema Canonicalization model {self.sc_llm_name}")
+                sc_verify_model, sc_verify_tokenizer = (
+                    AutoModelForCausalLM.from_pretrained(self.sc_llm_name, device_map="auto"),
+                    AutoTokenizer.from_pretrained(self.sc_llm_name),
+                )
+                self.loaded_model_dict[self.sc_llm_name] = (sc_verify_model, sc_verify_tokenizer)
+            else:
+                logger.info(f"Model {self.sc_llm_name} is already loaded, reusing it.")
+                sc_verify_model, sc_verify_tokenizer = self.loaded_model_dict[self.sc_llm_name]
+            schema_canonicalizer = SchemaCanonicalizer(self.schema, sc_embedder, sc_verify_model, sc_verify_tokenizer)
         else:
-            schema_canonicalizer = SchemaCanonicalizer(
-                self.schema,
-                schema_canonicalization_embedding_model,
-                schema_canonicalization_embedding_tokenizer,
-                verifier_openai_model=self.sc_llm_name,
-            )
+            schema_canonicalizer = SchemaCanonicalizer(self.schema, sc_embedder, verify_openai_model=self.sc_llm_name)
 
-        # Initialize the entity extractor
-        if not llm_utils.is_model_openai(self.ee_llm_name):
-            entity_extractor = EntityExtractor(
-                model=needed_model_dict[self.ee_llm_name][0], tokenizer=needed_model_dict[self.ee_llm_name][1]
-            )
-        else:
-            entity_extractor = EntityExtractor(openai_model=self.ee_llm_name)
+        canonicalized_triplets_list = []
+        for idx, input_text in enumerate(tqdm(input_text_list)):
+            oie_triplets = oie_triplets_list[idx]
+            canonicalized_triplets = []
+            sd_dict = schema_definition_dict_list[idx]
+            for oie_triplet in oie_triplets:
+                canonicalized_triplet = schema_canonicalizer.canonicalize(
+                    input_text, oie_triplet, sd_dict, sc_verify_prompt_template_str, self.enrich_schema
+                )
+                canonicalized_triplets.append(canonicalized_triplet)
+            canonicalized_triplets.append(canonicalized_triplets)
+            logger.info(f"{input_text}\n, {oie_triplets} ->\n {canonicalized_triplets_list}")
+        logger.info("Schema Canonicalization finished.")
 
-        # Initialize the schema retriever
-        schema_retriever_embedding_model = MistralForSequenceEmbedding.from_pretrained(
-            "intfloat/e5-mistral-7b-instruct", device_map="auto"
-        )
-        if self.sr_adapter_path is not None:
-            schema_retriever_embedding_model.load_adapter(self.sr_adapter_path)
-        schema_retriever_embedding_tokenizer = AutoTokenizer.from_pretrained("intfloat/e5-mistral-7b-instruct")
-        schema_retriever = SchemaRetriever(
-            self.schema, schema_retriever_embedding_model, schema_retriever_embedding_tokenizer
-        )
-
-        self.entity_extractor = entity_extractor
-        self.extractor = extractor
-        self.definer = schema_definer
-        self.canonicalizer = schema_canonicalizer
-        self.schema_retriever = schema_retriever
+        if free_model:
+            llm_utils.free_model(sc_embedder)
+            llm_utils.free_model(sc_verify_model)
+            llm_utils.free_model(sc_verify_tokenizer)
+            del self.loaded_model_dict[self.sc_llm_name]
+        
+        return canonicalized_triplets_list
 
     def construct_refinement_hint(
         self,
@@ -238,7 +311,6 @@ class EDC:
         self,
         input_text_list: List[str],
         output_dir: str = None,
-        detail_log=True,
         refinement_iterations=0,
     ):
         if output_dir is not None:
@@ -247,127 +319,45 @@ class EDC:
         output_kg_list = []
 
         # EDC run
-        print_flushed("EDC running...")
-        oie_triplets, schema_definition_dict_list, canonicalized_triplets_list = self.extract_kg_helper(input_text_list)
-        output_kg_list.append(oie_triplets)
-        output_kg_list.append(canonicalized_triplets_list)
+        logger.info("EDC starts running...")
 
-        if output_dir is not None:
-            with open(os.path.join(output_dir, "edc_output.txt"), "w") as f:
-                for l in canonicalized_triplets_list:
-                    f.write(str(l) + "\n")
-                f.flush()
+        required_model_dict = {
+            "oie": self.oie_llm_name,
+            "sd": self.sd_llm_name,
+            "sc_embed": self.sc_embedder_name,
+            "sc_verify": self.sc_llm_name,
+            "ee": self.ee_llm_name,
+        }
 
-            if self.enrich_schema:
-                with open(os.path.join(output_dir, "edc_updated_schema.csv"), "w") as f:
-                    writer = csv.writer(f)
-                    for relation, relation_definition in self.schema.items():
-                        writer.writerow([relation, relation_definition])
-                        f.flush()
+        for iteration in range(refinement_iterations + 1):
+            required_model_dict_current_iteration = copy.deepcopy(required_model_dict)
 
-        for iteration in range(refinement_iterations):
-            print_flushed(f"EDC with Refinement iteration {iteration + 1} running...")
-            oie_triplets, schema_definition_dict_list, canonicalized_triplets_list = self.extract_kg_helper(
-                input_text_list, canonicalized_triplets_list
-            )
-            output_kg_list.append(canonicalized_triplets_list)
-            if output_dir is not None:
-                with open(os.path.join(output_dir, f"edc_output_refinement_{iteration + 1}.txt"), "w") as f:
-                    for l in canonicalized_triplets_list:
-                        f.write(str(l) + "\n")
-                f.flush()
-                if self.enrich_schema:
-                    with open(os.path.join(output_dir, f"edc_updated_schema_{iteration + 1}.csv"), "w") as f:
-                        writer = csv.writer(f)
-                        for relation, relation_definition in self.schema.items():
-                            writer.writerow([relation, relation_definition])
-                            f.flush()
-        return output_kg_list
-
-    def extract_kg_helper(
-        self,
-        input_text_list: List[str],
-        previous_extracted_triplets_list: List[List[str]] = None,
-    ):
-        oie_triplets_list = []
-        if previous_extracted_triplets_list is None:
-            oie_few_shot_examples_str = open(self.oie_few_shot_example_file_path).read()
-            oie_few_shot_prompt_template_str = open(self.oie_prompt_template_file_path).read()
-
-            # Extract a canonicalized KG with EDC
-            print_flushed("Running OIE...")
-            for input_text in tqdm(input_text_list):
-                oie_triplets = self.extractor.extract(
-                    input_text, oie_few_shot_examples_str, oie_few_shot_prompt_template_str
-                )
-                oie_triplets_list.append(oie_triplets)
-                print_flushed(f"OIE: {input_text}\n -> {oie_triplets}\n")
-        else:
-            assert len(input_text_list) == len(
-                previous_extracted_triplets_list
-            ), "The number of given text does not match the number of triplets!"
-
-            # Gather the refinement hint
-            print_flushed("Putting together the refinement hint...")
-            entity_hint_list, relation_hint_list = self.construct_refinement_hint(
-                input_text_list, previous_extracted_triplets_list
+            del required_model_dict_current_iteration["oie"]
+            oie_triplets_list = self.oie(
+                input_text_list,
+                None,
+                free_model=self.oie_llm_name not in required_model_dict_current_iteration.values()
+                and iteration == refinement_iterations,
             )
 
-            oie_refinement_prompt_template_str = open(self.oie_r_prompt_template_file_path).read()
-            oie_refinement_few_shot_examples_str = open(self.oie_r_few_shot_example_file_path).read()
-            print_flushed("Running Refined OIE...")
-            for idx in tqdm(range(len(input_text_list))):
-                input_text = input_text_list[idx]
-                entity_hint_str = entity_hint_list[idx]
-                relation_hint_str = relation_hint_list[idx]
-                refined_oie_triplets = self.extractor.extract(
-                    input_text,
-                    oie_refinement_few_shot_examples_str,
-                    oie_refinement_prompt_template_str,
-                    entity_hint_str,
-                    relation_hint_str,
-                )
-                oie_triplets_list.append(refined_oie_triplets)
-            print_flushed(f"Refined OIE: {input_text}\n -> {refined_oie_triplets}\n")
-
-        schema_definition_dict_list = []
-        schema_definition_few_shot_prompt_template_str = open(self.sd_template_file_path).read()
-        schema_definition_few_shot_examples_str = open(self.sd_few_shot_example_file_path).read()
-
-        # Define the relations in the induced open schema
-        print_flushed("Running Schema Definition...")
-        for idx, oie_triplets in enumerate(tqdm(oie_triplets_list)):
-            schema_definition_dict = self.definer.define_schema(
-                input_text_list[idx],
-                oie_triplets,
-                schema_definition_few_shot_examples_str,
-                schema_definition_few_shot_prompt_template_str,
+            del required_model_dict_current_iteration["sd"]
+            sd_dict_list = self.schema_definition(
+                input_text_list,
+                oie_triplets_list,
+                free_model=self.sd_llm_name not in required_model_dict_current_iteration.values()
+                and iteration == refinement_iterations,
             )
-            schema_definition_dict_list.append(schema_definition_dict)
-            print_flushed(f"SD: {input_text}, {oie_triplets}\n -> {schema_definition_dict}\n")
-        canonicalize_verify_prompt_template_str = open(self.sc_template_file_path).read()
 
-        # Canonicalize
-        canonicalized_triplets_list = []
-        print_flushed("Running Schema Canonicalization...")
-        for idx, oie_triplets in enumerate(tqdm(oie_triplets_list)):
-            print_flushed(f"Schema Canonicalization: {input_text_list[idx]}")
-            canonicalized_triplets = []
-            for oie_triplet in oie_triplets:
-                canonicalized_triplet = self.canonicalizer.canonicalize(
-                    input_text_list[idx],
-                    oie_triplet,
-                    schema_definition_dict_list[idx],
-                    canonicalize_verify_prompt_template_str,
-                    enrich=self.enrich_schema,
-                )
-                print_flushed(f"{oie_triplet} -> {canonicalized_triplet}", flush=True)
-                if canonicalized_triplet is not None:
-                    canonicalized_triplets.append(canonicalized_triplet)
-            canonicalized_triplets_list.append(canonicalized_triplets)
+            del required_model_dict_current_iteration["sc_embed"]
+            del required_model_dict_current_iteration["sc_verify"]
+            canon_triplets_list = self.schema_canonicalization(
+                input_text_list,
+                oie_triplets_list,
+                sd_dict_list,
+                free_model=self.sc_llm_name not in required_model_dict_current_iteration.values()
+                and iteration == refinement_iterations,
+            )
 
-        # If schema may be changed, update the other modules that use embeddings
-        if self.enrich_schema:
-            self.schema_retriever.update_schema_embedding_dict()
+        return canon_triplets_list
 
-        return oie_triplets_list, schema_definition_dict_list, canonicalized_triplets_list
+        # Determine if the model should be freed

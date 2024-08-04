@@ -3,38 +3,29 @@ import openai
 import time
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import ast
+from sentence_transformers import SentenceTransformer
+from typing import List
+import gc
+import torch
 
+
+def free_model(model: AutoModelForCausalLM=None, tokenizer: AutoTokenizer=None):
+    model.cpu()
+    if model is not None:
+        del model
+    if tokenizer is not None:
+        del tokenizer
+    gc.collect()
+    torch.cuda.empty_cache()
+    
 
 def get_detailed_instruct(task_description: str, query: str) -> str:
     return f"Instruct: {task_description}\nQuery: {query}"
 
 
-def get_embedding_e5mistral(model, tokenizer, sentence, task=None):
-    model.eval()
-    device = model.device
-
-    if task != None:
-        # It's a query to be embed
-        sentence = get_detailed_instruct(task, sentence)
-
-    sentence = [sentence]
-
-    max_length = 4096
-    # Tokenize the input texts
-    batch_dict = tokenizer(
-        sentence, max_length=max_length - 1, return_attention_mask=False, padding=False, truncation=True
-    )
-    # append eos_token_id to every input_ids
-    batch_dict["input_ids"] = [input_ids + [tokenizer.eos_token_id] for input_ids in batch_dict["input_ids"]]
-    batch_dict = tokenizer.pad(batch_dict, padding=True, return_attention_mask=True, return_tensors="pt")
-
-    batch_dict.to(device)
-
-    embeddings = model(**batch_dict).detach().cpu()
-
-    assert len(embeddings) == 1
-
-    return embeddings[0]
+def get_embedding_sts(model: SentenceTransformer, text: str, prompt_name=None, prompt=None):
+    embedding = model.encode([text])
+    return embedding
 
 
 def parse_raw_entities(raw_entities: str):

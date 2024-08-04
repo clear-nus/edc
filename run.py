@@ -43,6 +43,11 @@ if __name__ == "__main__":
         help="LLM used for schema canonicaliztion verification.",
     )
     parser.add_argument(
+        "--sc_embedder",
+        default="intfloat/e5-mistral-7b-instruct",
+        help="Embedder used for schema canonicalization"
+    )
+    parser.add_argument(
         "--sc_prompt_template_file_path",
         default="./prompt_templates/sc_template.txt",
         help="Prompt template used for schema canonicalization verification.",
@@ -87,7 +92,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--target_schema_path",
-        default=None,
+        default='./schemas/example_schema.csv',
         help="File containing the target schema to align to.",
     )
     parser.add_argument("--refinement_iterations", default=0, type=int, help="Number of iteration to run.")
