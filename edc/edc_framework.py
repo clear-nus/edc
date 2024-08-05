@@ -16,9 +16,9 @@ import copy
 import logging
 from sentence_transformers import SentenceTransformer
 from importlib import reload
+import json
 
 reload(logging)
-logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger(__name__)
 
 
@@ -42,6 +42,7 @@ class EDC:
         # Refinement settings
         self.sr_adapter_path = edc_configuration["sr_adapter_path"]
 
+        self.sr_embedder_name = edc_configuration["sr_embedder"]
         self.oie_r_prompt_template_file_path = edc_configuration["oie_refine_prompt_template_file_path"]
         self.oie_r_few_shot_example_file_path = edc_configuration["oie_refine_few_shot_example_file_path"]
 
@@ -69,9 +70,9 @@ class EDC:
         )
 
         self.loaded_model_dict = {}
-
-        # print_flushed(f"Models used: {needed_model_set}")
-        # print_flushed("Loading models...")
+        
+        logging.basicConfig(level=edc_configuration["loglevel"])
+        
         logger.info(f"Model used: {self.needed_model_set}")
 
     def oie(
@@ -94,12 +95,37 @@ class EDC:
             extractor = Extractor(openai_model=self.oie_llm_name)
 
         oie_triples_list = []
+        entity_hint_list = None
+        relation_hint_list = None
+
         if previous_extracted_triplets_list is not None:
             # Refined OIE
             logger.info("Running Refined OIE...")
-            raise NotImplementedError
+            oie_refinement_prompt_template_str = open(self.oie_r_prompt_template_file_path).read()
+            oie_refinement_few_shot_examples_str = open(self.oie_r_few_shot_example_file_path).read()
+
+            logger.info("Putting together the refinement hint...")
+            entity_hint_list, relation_hint_list = self.construct_refinement_hint(
+                input_text_list, previous_extracted_triplets_list
+            )
+
+            assert len(previous_extracted_triplets_list) == len(input_text_list)
+            for idx, input_text in enumerate(tqdm(input_text_list)):
+                input_text = input_text_list[idx]
+                entity_hint_str = entity_hint_list[idx]
+                relation_hint_str = relation_hint_list[idx]
+                refined_oie_triplets = extractor.extract(
+                    input_text,
+                    oie_refinement_few_shot_examples_str,
+                    oie_refinement_prompt_template_str,
+                    entity_hint_str,
+                    relation_hint_str,
+                )
+                oie_triples_list.append(refined_oie_triplets)
         else:
             # Normal OIE
+            entity_hint_list = ["" for _ in input_text_list]
+            relation_hint_list = ["" for _ in input_text_list]
             logger.info("Running OIE...")
             oie_few_shot_examples_str = open(self.oie_few_shot_example_file_path).read()
             oie_few_shot_prompt_template_str = open(self.oie_prompt_template_file_path).read()
@@ -115,7 +141,7 @@ class EDC:
             llm_utils.free_model(oie_model, oie_tokenizer)
             del self.loaded_model_dict[self.oie_llm_name]
 
-        return oie_triples_list
+        return oie_triples_list, entity_hint_list, relation_hint_list
 
     def schema_definition(self, input_text_list: List[str], oie_triplets_list: List[List[str]], free_model=False):
         assert len(input_text_list) == len(oie_triplets_list)
@@ -198,7 +224,7 @@ class EDC:
                     input_text, oie_triplet, sd_dict, sc_verify_prompt_template_str, self.enrich_schema
                 )
                 canonicalized_triplets.append(canonicalized_triplet)
-            canonicalized_triplets.append(canonicalized_triplets)
+            canonicalized_triplets_list.append(canonicalized_triplets)
             logger.info(f"{input_text}\n, {oie_triplets} ->\n {canonicalized_triplets_list}")
         logger.info("Schema Canonicalization finished.")
 
@@ -207,7 +233,7 @@ class EDC:
             llm_utils.free_model(sc_verify_model)
             llm_utils.free_model(sc_verify_tokenizer)
             del self.loaded_model_dict[self.sc_llm_name]
-        
+
         return canonicalized_triplets_list
 
     def construct_refinement_hint(
@@ -225,10 +251,25 @@ class EDC:
         entity_hint_list = []
         relation_hint_list = []
 
+        if not llm_utils.is_model_openai(self.ee_llm_name):
+            # Load the HF model for Schema Definition
+            if self.ee_llm_name not in self.loaded_model_dict:
+                logger.info(f"Loading Entity Extraction model {self.ee_llm_name}")
+                ee_model, ee_tokenizer = (
+                    AutoModelForCausalLM.from_pretrained(self.ee_llm_name, device_map="auto"),
+                    AutoTokenizer.from_pretrained(self.ee_llm_name),
+                )
+                self.loaded_model_dict[self.ee_llm_name] = (ee_model, ee_tokenizer)
+            else:
+                logger.info(f"Model {self.sd_llm_name} is already loaded, reusing it.")
+                ee_model, ee_tokenizer = self.loaded_model_dict[self.ee_llm_name]
+            entity_extractor = EntityExtractor(model=ee_model, tokenizer=ee_tokenizer)
+        else:
+            entity_extractor = EntityExtractor(openai_model=self.sd_llm_name)
+
         relation_example_dict = {}
         if include_relation_example == "self":
             # Include an example of where this relation can be extracted
-            # print("Gathering relation examples...")
             for idx in range(len(input_text_list)):
                 input_text_str = input_text_list[idx]
                 extracted_triplets = extracted_triplets_list[idx]
@@ -258,10 +299,10 @@ class EDC:
             previous_relations = list(previous_relations)
 
             # Obtain candidate entities
-            extracted_entities = self.entity_extractor.extract_entities(
+            extracted_entities = entity_extractor.extract_entities(
                 input_text_str, entity_extraction_few_shot_examples_str, entity_extraction_prompt_template_str
             )
-            merged_entities = self.entity_extractor.merge_entities(
+            merged_entities = entity_extractor.merge_entities(
                 input_text_str, previous_entities, extracted_entities, entity_merging_prompt_template_str
             )
             entity_hint_list.append(str(merged_entities))
@@ -269,7 +310,28 @@ class EDC:
             # Obtain candidate relations
             hint_relations = previous_relations
 
-            retrieved_relations = self.schema_retriever.retrieve_relevant_relations(input_text_str)
+            # Initialize schema retriever
+
+            if self.sr_adapter_path is not None:
+                assert self.sr_embedder_name == "intfloat/e5-mistral-7b-instruct"
+                sr_embedding_model = MistralForSequenceEmbedding.from_pretrained(
+                    "intfloat/e5-mistral-7b-instruct", device_map="auto"
+                )
+                if self.sr_adapter_path is not None:
+                    sr_embedding_model.load_adapter(self.sr_adapter_path)
+                sr_embedding_tokenizer = AutoTokenizer.from_pretrained("intfloat/e5-mistral-7b-instruct")
+            else:
+                sr_embedding_model = SentenceTransformer(self.sr_embedder_name)
+                sr_embedding_tokenizer = None
+
+            schema_retriever = SchemaRetriever(
+                self.schema,
+                sr_embedding_model,
+                sr_embedding_tokenizer,
+                finetuned_e5mistral=self.sr_adapter_path is not None,
+            )
+
+            retrieved_relations = schema_retriever.retrieve_relevant_relations(input_text_str)
 
             counter = 0
 
@@ -295,7 +357,6 @@ class EDC:
                     else:
                         selected_example = None
                         for example in relation_example_dict[relation]:
-                            # print(example)
                             if example["text"] != input_text_str:
                                 selected_example = example
                                 break
@@ -307,14 +368,13 @@ class EDC:
             relation_hint_list.append(candidate_relation_str)
         return entity_hint_list, relation_hint_list
 
-    def extract_kg(
-        self,
-        input_text_list: List[str],
-        output_dir: str = None,
-        refinement_iterations=0,
-    ):
+    def extract_kg(self, input_text_list: List[str], output_dir: str = None, refinement_iterations=0):
         if output_dir is not None:
-            pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+            if os.path.exists(output_dir):
+                logging.error(f"Output directory {output_dir} already exists! Quitting.")
+                exit()
+            for iteration in range(refinement_iterations + 1):
+                pathlib.Path(f"{output_dir}/iter{iteration}").mkdir(parents=True, exist_ok=True)
 
         output_kg_list = []
 
@@ -327,17 +387,23 @@ class EDC:
             "sc_embed": self.sc_embedder_name,
             "sc_verify": self.sc_llm_name,
             "ee": self.ee_llm_name,
+            "sr": self.sr_embedder_name,
         }
 
+        triplets_from_last_iteration = None
         for iteration in range(refinement_iterations + 1):
+            logger.info(f"Iteration {iteration}:")
+
+            iteration_result_dir = f"{output_dir}/iter{iteration}"
+
             required_model_dict_current_iteration = copy.deepcopy(required_model_dict)
 
             del required_model_dict_current_iteration["oie"]
-            oie_triplets_list = self.oie(
+            oie_triplets_list, entity_hint_list, relation_hint_list = self.oie(
                 input_text_list,
-                None,
                 free_model=self.oie_llm_name not in required_model_dict_current_iteration.values()
                 and iteration == refinement_iterations,
+                previous_extracted_triplets_list=triplets_from_last_iteration,
             )
 
             del required_model_dict_current_iteration["sd"]
@@ -357,6 +423,32 @@ class EDC:
                 free_model=self.sc_llm_name not in required_model_dict_current_iteration.values()
                 and iteration == refinement_iterations,
             )
+
+            triplets_from_last_iteration = canon_triplets_list
+
+            # Write results
+            assert len(oie_triplets_list) == len(sd_dict_list) and len(sd_dict_list) == len(canon_triplets_list)
+
+            json_results_list = []
+            for idx in range(len(oie_triplets_list)):
+                result_json = {
+                    "index": idx,
+                    "input_text": input_text_list[idx],
+                    "entity_hint": entity_hint_list[idx],
+                    "relation_hint": relation_hint_list[idx],
+                    "oie": oie_triplets_list[idx],
+                    "schema_definition": sd_dict_list[idx],
+                    "schema_canonicalizaiton": canon_triplets_list[idx],
+                }
+                json_results_list.append(result_json)
+            result_at_each_stage_file = open(f"{iteration_result_dir}/result_at_each_stage.json", "w")
+            json.dump(json_results_list, result_at_each_stage_file, indent=4)
+
+            final_result_file = open(f"{iteration_result_dir}/canon_kg.txt", "w")
+            for idx, canon_triplets in enumerate(canon_triplets_list):
+                final_result_file.write(str(canon_triplets))
+                if idx != len(canon_triplets_list) - 1:
+                    final_result_file.write("\n")
 
         return canon_triplets_list
 

@@ -32,7 +32,6 @@ def read_tekgen(tekgen_path):
 
                     # Check if subject and object are present in text
                     if subject.lower() not in text.lower() or object.lower() not in text.lower():
-                        # print(f"{triple} not explicitly in {text}")
                         skip_flag = True
             if not skip_flag:
                 json_dict_list.append(line_json_dict)
@@ -88,7 +87,6 @@ def crawl_relation_definitions(json_dict_list, result_csv_path):
                 }
             )
 
-            # print(filled_first_prompt)
             output = llm_utils.openai_chat_completion(
                 "gpt-3.5-turbo",
                 system_prompt=None,

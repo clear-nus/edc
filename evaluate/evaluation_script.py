@@ -93,8 +93,6 @@ def convert_to_xml(result_path: str, gold_path: str, max_length_diff=None):
     ET.indent(gold_tree, space="\t", level=0)
     gold_tree.write(ref_xml_path)
 
-    print(f"Skipped {skipped} Collected {collected}!")
-
     return pred_xml_path, ref_xml_path
 
 

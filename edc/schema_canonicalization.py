@@ -89,23 +89,27 @@ class SchemaCanonicalizer:
                 "choices": choices,
             }
         )
+        
+        
         messages = [{"role": "user", "content": verification_prompt}]
         if self.verifier_openai_model is None:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
-            verificaiton_result = llm_utils.generate_completion_transformers(
-                [messages],
+            verification_result = llm_utils.generate_completion_transformers(
+                messages,
                 self.verifier_model,
                 self.verifier_tokenizer,
-                device=self.verifier_model.device,
+            
                 answer_prepend="Answer: ",
+                max_new_token=1
             )[0]
         else:
-            verificaiton_result = llm_utils.openai_chat_completion(
+            verification_result = llm_utils.openai_chat_completion(
                 self.verifier_openai_model, None, messages, max_tokens=1
             )
-
-        if verificaiton_result[0] in choice_letters_list:
-            canonicalized_triplet[1] = candidate_relations[choice_letters_list.index(verificaiton_result[0])]
+            
+        
+        if verification_result[0] in choice_letters_list:
+            canonicalized_triplet[1] = candidate_relations[choice_letters_list.index(verification_result[0])]
         else:
             return None
 
@@ -143,14 +147,12 @@ class SchemaCanonicalizer:
                 )
         else:
             canonicalized_triplet = None
-
+        
         if canonicalized_triplet is None:
             # Cannot be canonicalized
             if enrich:
                 self.schema_dict[open_relation] = open_relation_definition_dict[open_relation]
-                embedding = llm_utils.get_embedding_e5mistral(
-                    self.embedder, self.embedding_tokenizer, open_relation_definition_dict[open_relation]
-                )
+                embedding = self.embedder.encode(open_relation_definition_dict[open_relation], prompt_name="sts_query")
                 self.schema_embedding_dict[open_relation] = embedding
                 canonicalized_triplet = open_triplet
         return canonicalized_triplet

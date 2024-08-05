@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 from edc.edc_framework import EDC
 import os
+import logging
+from importlib import reload
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -43,9 +45,7 @@ if __name__ == "__main__":
         help="LLM used for schema canonicaliztion verification.",
     )
     parser.add_argument(
-        "--sc_embedder",
-        default="intfloat/e5-mistral-7b-instruct",
-        help="Embedder used for schema canonicalization"
+        "--sc_embedder", default="intfloat/e5-mistral-7b-instruct", help="Embedder used for schema canonicalization"
     )
     parser.add_argument(
         "--sc_prompt_template_file_path",
@@ -55,6 +55,9 @@ if __name__ == "__main__":
 
     # Refinement setting
     parser.add_argument("--sr_adapter_path", default=None, help="Path to adapter of schema retriever.")
+    parser.add_argument(
+        "--sr_embedder", default="intfloat/e5-mistral-7b-instruct", help="Embedding model used for schema retriever."
+    )
     parser.add_argument(
         "--oie_refine_prompt_template_file_path",
         default="./prompt_templates/oie_r_template.txt",
@@ -92,7 +95,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--target_schema_path",
-        default='./schemas/example_schema.csv',
+        default="./schemas/example_schema.csv",
         help="File containing the target schema to align to.",
     )
     parser.add_argument("--refinement_iterations", default=0, type=int, help="Number of iteration to run.")
@@ -104,11 +107,18 @@ if __name__ == "__main__":
 
     # Output setting
     parser.add_argument("--output_dir", default="./output/tmp", help="Directory to output to.")
+    # parser.add_argument("--verbose", action="store_true", help="Whether to store the results at each stage.")
+    parser.add_argument("--logging_verbose", action="store_const", dest="loglevel", const=logging.INFO)
+    parser.add_argument("--logging_debug", action="store_const", dest="loglevel", const=logging.DEBUG)
 
     args = parser.parse_args()
     args = vars(args)
-    print(args)
     edc = EDC(**args)
+    
 
     input_text_list = open(args["input_text_file_path"], "r").readlines()
-    output_kg = edc.extract_kg(input_text_list, args["output_dir"], refinement_iterations=args["refinement_iterations"])
+    output_kg = edc.extract_kg(
+        input_text_list,
+        args["output_dir"],
+        refinement_iterations=args["refinement_iterations"],
+    )
