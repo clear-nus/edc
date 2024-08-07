@@ -1261,7 +1261,6 @@ def main(reffile, candfile):
     reflist, newreflist = getRefs(reffile)
     candlist, newcandlist = getCands(candfile)
     totalsemevallist, totalsemevallistpertag = calculateAllScores(newreflist, newcandlist)
-    print(len(totalsemevallist))
     calculateSystemScore(totalsemevallist, totalsemevallistpertag, newreflist, newcandlist)
     calculateExactTripleScore(reflist, candlist)
 
