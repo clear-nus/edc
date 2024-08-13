@@ -30,7 +30,7 @@ class EntityExtractor:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
             completion = llm_utils.generate_completion_transformers(
                 messages, self.model, self.tokenizer, answer_prepend="Entities: "
-            )[0]
+            )
         else:
             completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
         extracted_entities = llm_utils.parse_raw_entities(completion)
@@ -48,7 +48,7 @@ class EntityExtractor:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
             completion = llm_utils.generate_completion_transformers(
                 messages, self.model, self.tokenizer, answer_prepend="Answer: "
-            )[0]
+            )
         else:
             completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
         extracted_entities = llm_utils.parse_raw_entities(completion)

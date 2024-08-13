@@ -46,7 +46,10 @@ class SchemaCanonicalizer:
     def retrieve_similar_relations(self, query_relation_definition: str, top_k=5):
         target_relation_list = list(self.schema_embedding_dict.keys())
         target_relation_embedding_list = list(self.schema_embedding_dict.values())
-        query_embedding = self.embedder.encode(query_relation_definition, prompt_name="sts_query")
+        if "sts_query" in self.embedder.prompts:
+            query_embedding = self.embedder.encode(query_relation_definition, prompt_name="sts_query")
+        else:
+            query_embedding = self.embedder.encode(query_relation_definition)
 
         scores = np.array([query_embedding]) @ np.array(target_relation_embedding_list).T
 
@@ -89,25 +92,18 @@ class SchemaCanonicalizer:
                 "choices": choices,
             }
         )
-        
-        
+
         messages = [{"role": "user", "content": verification_prompt}]
         if self.verifier_openai_model is None:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
             verification_result = llm_utils.generate_completion_transformers(
-                messages,
-                self.verifier_model,
-                self.verifier_tokenizer,
-            
-                answer_prepend="Answer: ",
-                max_new_token=1
-            )[0]
+                messages, self.verifier_model, self.verifier_tokenizer, answer_prepend="Answer: ", max_new_token=5
+            )
         else:
             verification_result = llm_utils.openai_chat_completion(
                 self.verifier_openai_model, None, messages, max_tokens=1
             )
-            
-        
+
         if verification_result[0] in choice_letters_list:
             canonicalized_triplet[1] = candidate_relations[choice_letters_list.index(verification_result[0])]
         else:
@@ -123,20 +119,26 @@ class SchemaCanonicalizer:
         verify_prompt_template: str,
         enrich=False,
     ):
+
         open_relation = open_triplet[1]
 
         if open_relation in self.schema_dict:
             # The relation is already canonical
-            return open_triplet
+            # candidate_relations, candidate_scores = self.retrieve_similar_relations(
+            #     open_relation_definition_dict[open_relation]
+            # )
+            return open_triplet, {}
+
+        candidate_relations = []
+        candidate_scores = []
 
         if len(self.schema_dict) != 0:
-            candidate_relations, candidate_scores = self.retrieve_similar_relations(
-                open_relation_definition_dict[open_relation]
-            )
-
             if open_relation not in open_relation_definition_dict:
                 canonicalized_triplet = None
             else:
+                candidate_relations, candidate_scores = self.retrieve_similar_relations(
+                    open_relation_definition_dict[open_relation]
+                )
                 canonicalized_triplet = self.llm_verify(
                     input_text_str,
                     open_triplet,
@@ -147,12 +149,17 @@ class SchemaCanonicalizer:
                 )
         else:
             canonicalized_triplet = None
-        
+
         if canonicalized_triplet is None:
             # Cannot be canonicalized
             if enrich:
                 self.schema_dict[open_relation] = open_relation_definition_dict[open_relation]
-                embedding = self.embedder.encode(open_relation_definition_dict[open_relation], prompt_name="sts_query")
+                if "sts_query" in self.embedder.prompts:
+                    embedding = self.embedder.encode(
+                        open_relation_definition_dict[open_relation], prompt_name="sts_query"
+                    )
+                else:
+                    embedding = self.embedder.encode(open_relation_definition_dict[open_relation])
                 self.schema_embedding_dict[open_relation] = embedding
                 canonicalized_triplet = open_triplet
-        return canonicalized_triplet
+        return canonicalized_triplet, dict(zip(candidate_relations, candidate_scores))

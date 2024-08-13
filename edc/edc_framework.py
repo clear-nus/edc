@@ -16,6 +16,7 @@ import copy
 import logging
 from sentence_transformers import SentenceTransformer
 from importlib import reload
+import random
 import json
 
 reload(logging)
@@ -70,9 +71,9 @@ class EDC:
         )
 
         self.loaded_model_dict = {}
-        
+
         logging.basicConfig(level=edc_configuration["loglevel"])
-        
+
         logger.info(f"Model used: {self.needed_model_set}")
 
     def oie(
@@ -80,16 +81,17 @@ class EDC:
     ):
         if not llm_utils.is_model_openai(self.oie_llm_name):
             # Load the HF model for OIE
-            logger.info(f"Loading OIE model {self.oie_llm_name}")
-            if self.oie_llm_name not in self.loaded_model_dict:
-                oie_model, oie_tokenizer = (
-                    AutoModelForCausalLM.from_pretrained(self.oie_llm_name, device_map="auto"),
-                    AutoTokenizer.from_pretrained(self.oie_llm_name),
-                )
-                self.loaded_model_dict[self.oie_llm_name] = (oie_model, oie_tokenizer)
-            else:
-                logger.info(f"Model {self.oie_llm_name} is already loaded, reusing it.")
-                oie_model, oie_tokenizer = self.loaded_model_dict[self.oie_llm_name]
+            oie_model, oie_tokenizer = self.load_model(self.oie_llm_name, "hf")
+            # if self.oie_llm_name not in self.loaded_model_dict:
+            #     logger.info(f"Loading model {self.oie_llm_name}.")
+            #     oie_model, oie_tokenizer = (
+            #         AutoModelForCausalLM.from_pretrained(self.oie_llm_name, device_map="auto"),
+            #         AutoTokenizer.from_pretrained(self.oie_llm_name),
+            #     )
+            #     self.loaded_model_dict[self.oie_llm_name] = (oie_model, oie_tokenizer)
+            # else:
+            #     logger.info(f"Model {self.oie_llm_name} is already loaded, reusing it.")
+            #     oie_model, oie_tokenizer = self.loaded_model_dict[self.oie_llm_name]
             extractor = Extractor(oie_model, oie_tokenizer)
         else:
             extractor = Extractor(openai_model=self.oie_llm_name)
@@ -106,7 +108,7 @@ class EDC:
 
             logger.info("Putting together the refinement hint...")
             entity_hint_list, relation_hint_list = self.construct_refinement_hint(
-                input_text_list, previous_extracted_triplets_list
+                input_text_list, previous_extracted_triplets_list, free_model=free_model
             )
 
             assert len(previous_extracted_triplets_list) == len(input_text_list)
@@ -138,26 +140,46 @@ class EDC:
         logger.info("OIE finished.")
 
         if free_model:
+            logger.info(f"Freeing model {self.oie_llm_name} as it is no longer needed")
             llm_utils.free_model(oie_model, oie_tokenizer)
             del self.loaded_model_dict[self.oie_llm_name]
 
         return oie_triples_list, entity_hint_list, relation_hint_list
+
+    def load_model(self, model_name, model_type):
+        assert model_type in ["sts", "hf"]  # Either a sentence transformer or a huggingface LLM
+        if model_name in self.loaded_model_dict:
+            logger.info(f"Model {model_name} is already loaded, reusing it.")
+        else:
+            logger.info(f"Loading model {model_name}")
+            if model_type == "hf":
+                model, tokenizer = (
+                    AutoModelForCausalLM.from_pretrained(model_name, device_map="auto"),
+                    AutoTokenizer.from_pretrained(model_name),
+                )
+                self.loaded_model_dict[model_name] = (model, tokenizer)
+            elif model_type == "sts":
+                model = SentenceTransformer(model_name, trust_remote_code=True)
+                self.loaded_model_dict[model_name] = model
+        return self.loaded_model_dict[model_name]
 
     def schema_definition(self, input_text_list: List[str], oie_triplets_list: List[List[str]], free_model=False):
         assert len(input_text_list) == len(oie_triplets_list)
 
         if not llm_utils.is_model_openai(self.sd_llm_name):
             # Load the HF model for Schema Definition
-            if self.sd_llm_name not in self.loaded_model_dict:
-                logger.info(f"Loading Schema Definition model {self.sd_llm_name}")
-                sd_model, sd_tokenizer = (
-                    AutoModelForCausalLM.from_pretrained(self.sd_llm_name, device_map="auto"),
-                    AutoTokenizer.from_pretrained(self.sd_llm_name),
-                )
-                self.loaded_model_dict[self.sd_llm_name] = (sd_model, sd_tokenizer)
-            else:
-                logger.info(f"Model {self.sd_llm_name} is already loaded, reusing it.")
-                sd_model, sd_tokenizer = self.loaded_model_dict[self.sd_llm_name]
+            sd_model, sd_tokenizer = self.load_model(self.sd_llm_name, "hf")
+            # if self.sd_llm_name not in self.loaded_model_dict:
+            #     logger.info(f"Loading model {self.sd_llm_name}")
+            #     sd_model, sd_tokenizer = (
+            #         AutoModelForCausalLM.from_pretrained(self.sd_llm_name, device_map="auto"),
+            #         AutoTokenizer.from_pretrained(self.sd_llm_name),
+            #     )
+            #     self.loaded_model_dict[self.sd_llm_name] = (sd_model, sd_tokenizer)
+            #     logger.info(f"Loading model {self.sd_llm_name}.")
+            # else:
+            #     logger.info(f"Model {self.sd_llm_name} is already loaded, reusing it.")
+            #     sd_model, sd_tokenizer = self.loaded_model_dict[self.sd_llm_name]
             schema_definer = SchemaDefiner(model=sd_model, tokenizer=sd_tokenizer)
         else:
             schema_definer = SchemaDefiner(openai_model=self.sd_llm_name)
@@ -179,7 +201,8 @@ class EDC:
 
         logger.info("Schema Definition finished.")
         if free_model:
-            llm_utils.free_model(sd_model)
+            logger.info(f"Freeing model {self.sd_llm_name} as it is no longer needed")
+            llm_utils.free_model(sd_model, sd_tokenizer)
             del self.loaded_model_dict[self.sd_llm_name]
         return schema_definition_dict_list
 
@@ -197,44 +220,63 @@ class EDC:
 
         sc_verify_prompt_template_str = open(self.sc_template_file_path).read()
 
-        sc_embedder = SentenceTransformer(self.sc_embedder_name)
+        # if self.sc_embedder_name not in self.loaded_model_dict:
+        #     logger.info(f"Loading model {self.sc_embedder_name}.")
+        #     sc_embedder = SentenceTransformer(self.sc_embedder_name, trust_remote_code=True)
+        #     self.loaded_model_dict[self.sc_embedder_name] = sc_embedder
+
+        # else:
+        #     logger.info(f"Model {self.sc_embedder_name} is already loaded, reusing it.")
+        #     sc_embedder = self.loaded_model_dict[self.sc_embedder_name]
+        
+        sc_embedder = self.load_model(self.sc_embedder_name, "sts")
+        
 
         if not llm_utils.is_model_openai(self.sc_llm_name):
-            if self.sc_llm_name not in self.loaded_model_dict:
-                logger.info(f"Loading Schema Canonicalization model {self.sc_llm_name}")
-                sc_verify_model, sc_verify_tokenizer = (
-                    AutoModelForCausalLM.from_pretrained(self.sc_llm_name, device_map="auto"),
-                    AutoTokenizer.from_pretrained(self.sc_llm_name),
-                )
-                self.loaded_model_dict[self.sc_llm_name] = (sc_verify_model, sc_verify_tokenizer)
-            else:
-                logger.info(f"Model {self.sc_llm_name} is already loaded, reusing it.")
-                sc_verify_model, sc_verify_tokenizer = self.loaded_model_dict[self.sc_llm_name]
+            sc_verify_model, sc_verify_tokenizer = self.load_model(self.sc_llm_name, "sts")
+            # if self.sc_llm_name not in self.loaded_model_dict:
+            #     logger.info(f"Loading model {self.sc_llm_name}")
+            #     sc_verify_model, sc_verify_tokenizer = (
+            #         AutoModelForCausalLM.from_pretrained(self.sc_llm_name, device_map="auto"),
+            #         AutoTokenizer.from_pretrained(self.sc_llm_name),
+            #     )
+            #     self.loaded_model_dict[self.sc_llm_name] = (sc_verify_model, sc_verify_tokenizer)
+            # else:
+            #     logger.info(f"Model {self.sc_llm_name} is already loaded, reusing it.")
+            #     sc_verify_model, sc_verify_tokenizer = self.loaded_model_dict[self.sc_llm_name]
             schema_canonicalizer = SchemaCanonicalizer(self.schema, sc_embedder, sc_verify_model, sc_verify_tokenizer)
         else:
             schema_canonicalizer = SchemaCanonicalizer(self.schema, sc_embedder, verify_openai_model=self.sc_llm_name)
 
         canonicalized_triplets_list = []
+        canon_candidate_dict_per_entry_list = []
+
         for idx, input_text in enumerate(tqdm(input_text_list)):
             oie_triplets = oie_triplets_list[idx]
             canonicalized_triplets = []
             sd_dict = schema_definition_dict_list[idx]
+            canon_candidate_dict_list = []
             for oie_triplet in oie_triplets:
-                canonicalized_triplet = schema_canonicalizer.canonicalize(
+                canonicalized_triplet, canon_candidate_dict = schema_canonicalizer.canonicalize(
                     input_text, oie_triplet, sd_dict, sc_verify_prompt_template_str, self.enrich_schema
                 )
                 canonicalized_triplets.append(canonicalized_triplet)
+                canon_candidate_dict_list.append(canon_candidate_dict)
+
             canonicalized_triplets_list.append(canonicalized_triplets)
-            logger.info(f"{input_text}\n, {oie_triplets} ->\n {canonicalized_triplets_list}")
+            canon_candidate_dict_per_entry_list.append(canon_candidate_dict_list)
+
+            logger.debug(f"{input_text}\n, {oie_triplets} ->\n {canonicalized_triplets}")
+            logger.debug(f"Retrieved candidate relations {canon_candidate_dict}")
         logger.info("Schema Canonicalization finished.")
 
         if free_model:
+            logger.info(f"Freeing model {self.sc_embedder_name, self.sc_llm_name} as it is no longer needed")
             llm_utils.free_model(sc_embedder)
-            llm_utils.free_model(sc_verify_model)
-            llm_utils.free_model(sc_verify_tokenizer)
+            llm_utils.free_model(sc_verify_model, sc_verify_tokenizer)
             del self.loaded_model_dict[self.sc_llm_name]
 
-        return canonicalized_triplets_list
+        return canonicalized_triplets_list, canon_candidate_dict_per_entry_list
 
     def construct_refinement_hint(
         self,
@@ -242,6 +284,7 @@ class EDC:
         extracted_triplets_list: List[List[List[str]]],
         include_relation_example="self",
         relation_top_k=10,
+        free_model=False,
     ):
         entity_extraction_few_shot_examples_str = open(self.ee_few_shot_example_file_path).read()
         entity_extraction_prompt_template_str = open(self.ee_template_file_path).read()
@@ -251,21 +294,40 @@ class EDC:
         entity_hint_list = []
         relation_hint_list = []
 
+        # Initialize entity extractor
         if not llm_utils.is_model_openai(self.ee_llm_name):
             # Load the HF model for Schema Definition
-            if self.ee_llm_name not in self.loaded_model_dict:
-                logger.info(f"Loading Entity Extraction model {self.ee_llm_name}")
-                ee_model, ee_tokenizer = (
-                    AutoModelForCausalLM.from_pretrained(self.ee_llm_name, device_map="auto"),
-                    AutoTokenizer.from_pretrained(self.ee_llm_name),
-                )
-                self.loaded_model_dict[self.ee_llm_name] = (ee_model, ee_tokenizer)
-            else:
-                logger.info(f"Model {self.sd_llm_name} is already loaded, reusing it.")
-                ee_model, ee_tokenizer = self.loaded_model_dict[self.ee_llm_name]
+            ee_model, ee_tokenizer = self.load_model(self.ee_llm_name, "hf")
+            # if self.ee_llm_name not in self.loaded_model_dict:
+            #     logger.info(f"Loading model {self.ee_llm_name}")
+            #     ee_model, ee_tokenizer = (
+            #         AutoModelForCausalLM.from_pretrained(self.ee_llm_name, device_map="auto"),
+            #         AutoTokenizer.from_pretrained(self.ee_llm_name),
+            #     )
+            #     self.loaded_model_dict[self.ee_llm_name] = (ee_model, ee_tokenizer)
+            # else:
+            #     logger.info(f"Model {self.ee_llm_name} is already loaded, reusing it.")
+            #     ee_model, ee_tokenizer = self.loaded_model_dict[self.ee_llm_name]
             entity_extractor = EntityExtractor(model=ee_model, tokenizer=ee_tokenizer)
         else:
             entity_extractor = EntityExtractor(openai_model=self.sd_llm_name)
+
+        # Initialize schema retriever
+        # if self.sr_embedder_name not in self.loaded_model_dict:
+        #     logger.info(f"Loading model {self.sr_embedder_name}.")
+        #     sr_embedding_model = SentenceTransformer(self.sr_embedder_name)
+        #     self.loaded_model_dict[self.sr_embedder_name] = sr_embedding_model
+        # else:
+        #     sr_embedding_model = self.loaded_model_dict[self.sr_embedder_name]
+        #     logger.info(f"Model {self.sr_embedder_name} is already loaded, reusing it.")
+        sr_embedding_model = self.load_model(self.sr_embedder_name, "sts")
+
+        schema_retriever = SchemaRetriever(
+            self.schema,
+            sr_embedding_model,
+            None,
+            finetuned_e5mistral=False,
+        )
 
         relation_example_dict = {}
         if include_relation_example == "self":
@@ -283,7 +345,7 @@ class EDC:
             # Todo: allow to pass gold examples of relations
             pass
 
-        for idx in range(len(input_text_list)):
+        for idx in tqdm(range(len(input_text_list))):
             input_text_str = input_text_list[idx]
             extracted_triplets = extracted_triplets_list[idx]
 
@@ -310,27 +372,6 @@ class EDC:
             # Obtain candidate relations
             hint_relations = previous_relations
 
-            # Initialize schema retriever
-
-            if self.sr_adapter_path is not None:
-                assert self.sr_embedder_name == "intfloat/e5-mistral-7b-instruct"
-                sr_embedding_model = MistralForSequenceEmbedding.from_pretrained(
-                    "intfloat/e5-mistral-7b-instruct", device_map="auto"
-                )
-                if self.sr_adapter_path is not None:
-                    sr_embedding_model.load_adapter(self.sr_adapter_path)
-                sr_embedding_tokenizer = AutoTokenizer.from_pretrained("intfloat/e5-mistral-7b-instruct")
-            else:
-                sr_embedding_model = SentenceTransformer(self.sr_embedder_name)
-                sr_embedding_tokenizer = None
-
-            schema_retriever = SchemaRetriever(
-                self.schema,
-                sr_embedding_model,
-                sr_embedding_tokenizer,
-                finetuned_e5mistral=self.sr_adapter_path is not None,
-            )
-
             retrieved_relations = schema_retriever.retrieve_relevant_relations(input_text_str)
 
             counter = 0
@@ -352,31 +393,39 @@ class EDC:
                 candidate_relation_str += f"{relation_idx+1}. {relation}: {relation_definition}\n"
                 if include_relation_example == "self":
                     if relation not in relation_example_dict:
-                        candidate_relation_str += "Example: None.\n"
+                        # candidate_relation_str += "Example: None.\n"
                         pass
                     else:
                         selected_example = None
-                        for example in relation_example_dict[relation]:
-                            if example["text"] != input_text_str:
-                                selected_example = example
-                                break
+                        if len(relation_example_dict[relation]) != 0:
+                            selected_example = random.choice(relation_example_dict[relation])
+                        # for example in relation_example_dict[relation]:
+                        #     if example["text"] != input_text_str:
+                        #         selected_example = example
+                        #         break
                         if selected_example is not None:
                             candidate_relation_str += f"""For example, {selected_example['triplet']} can be extracted from "{selected_example['text']}"\n"""
                         else:
-                            candidate_relation_str += "Example: None.\n"
+                            # candidate_relation_str += "Example: None.\n"
                             pass
             relation_hint_list.append(candidate_relation_str)
+
+        if free_model:
+            logger.info(f"Freeing model {self.sr_embedder_name, self.ee_llm_name} as it is no longer needed")
+            llm_utils.free_model(sr_embedding_model)
+            llm_utils.free_model(ee_model, ee_tokenizer)
+            del self.loaded_model_dict[self.sr_embedder_name]
+            del self.loaded_model_dict[self.ee_llm_name]
         return entity_hint_list, relation_hint_list
 
     def extract_kg(self, input_text_list: List[str], output_dir: str = None, refinement_iterations=0):
         if output_dir is not None:
             if os.path.exists(output_dir):
-                logging.error(f"Output directory {output_dir} already exists! Quitting.")
+                logger.error(f"Output directory {output_dir} already exists! Quitting.")
                 exit()
             for iteration in range(refinement_iterations + 1):
                 pathlib.Path(f"{output_dir}/iter{iteration}").mkdir(parents=True, exist_ok=True)
 
-        output_kg_list = []
 
         # EDC run
         logger.info("EDC starts running...")
@@ -416,7 +465,7 @@ class EDC:
 
             del required_model_dict_current_iteration["sc_embed"]
             del required_model_dict_current_iteration["sc_verify"]
-            canon_triplets_list = self.schema_canonicalization(
+            canon_triplets_list, canon_candidate_dict_list = self.schema_canonicalization(
                 input_text_list,
                 oie_triplets_list,
                 sd_dict_list,
@@ -424,7 +473,15 @@ class EDC:
                 and iteration == refinement_iterations,
             )
 
-            triplets_from_last_iteration = canon_triplets_list
+            non_null_triplets_list = [
+                [triple for triple in triplets if triple is not None] for triplets in canon_triplets_list
+            ]
+            # for triplets in canon_triplets_list:
+            #     non_null_triplets = []
+            #     for triple in triplets:
+            #         if triple is not None:
+            #             non_n
+            triplets_from_last_iteration = non_null_triplets_list
 
             # Write results
             assert len(oie_triplets_list) == len(sd_dict_list) and len(sd_dict_list) == len(canon_triplets_list)
@@ -438,6 +495,7 @@ class EDC:
                     "relation_hint": relation_hint_list[idx],
                     "oie": oie_triplets_list[idx],
                     "schema_definition": sd_dict_list[idx],
+                    "canonicalization_candidates": str(canon_candidate_dict_list[idx]),
                     "schema_canonicalizaiton": canon_triplets_list[idx],
                 }
                 json_results_list.append(result_json)
@@ -445,11 +503,10 @@ class EDC:
             json.dump(json_results_list, result_at_each_stage_file, indent=4)
 
             final_result_file = open(f"{iteration_result_dir}/canon_kg.txt", "w")
-            for idx, canon_triplets in enumerate(canon_triplets_list):
+            for idx, canon_triplets in enumerate(non_null_triplets_list):
                 final_result_file.write(str(canon_triplets))
                 if idx != len(canon_triplets_list) - 1:
                     final_result_file.write("\n")
+                final_result_file.flush()
 
         return canon_triplets_list
-
-        # Determine if the model should be freed

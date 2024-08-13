@@ -1,2 +1,10 @@
 student,The subject receives education at the institute specified by the object entity.
-job, The subject has an occupation specified by the object entity.
+country,The subject entity is located in the country specified by the object entity.
+contains administrative territorial entity,The subject entity contains the administrative territorial entity specified by the object entity.
+contains settlement,The subject entity contains the settlement specified by the object entity.
+located in the administrative territorial entity,The subject entity is located in the administrative territorial entity specified by the object entity.
+date of birth,The subject entity was born on the date specified by the object entity.
+place of birth,The subject entity was born in the location specified by the object entity.
+date of death,The subject entity died on the date specified by the object entity.
+place of death,The subject entity died in the location specified by the object entity.
+start time,The subject entity began at the time specified by the object entity.

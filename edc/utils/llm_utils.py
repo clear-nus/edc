@@ -63,9 +63,13 @@ def get_embedding_sts(model: SentenceTransformer, text: str, prompt_name=None, p
 
 
 def parse_raw_entities(raw_entities: str):
+    parsed_entities = []
     left_bracket_idx = raw_entities.index("[")
     right_bracket_idx = raw_entities.index("]")
-    parsed_entities = ast.literal_eval(raw_entities[left_bracket_idx : right_bracket_idx + 1])
+    try:
+        parsed_entities = ast.literal_eval(raw_entities[left_bracket_idx : right_bracket_idx + 1])
+    except Exception as e:
+        pass
     logging.debug(f"Entities {raw_entities} parsed as {parsed_entities}")
     return parsed_entities
 
@@ -136,7 +140,6 @@ def generate_completion_transformers(
 ):
     device = model.device
     tokenizer.pad_token = tokenizer.eos_token
-    completions = []
 
     messages = tokenizer.apply_chat_template(input, add_generation_prompt=True, tokenize=False) + answer_prepend
 
@@ -152,11 +155,9 @@ def generate_completion_transformers(
     generation = model.generate(**model_inputs, generation_config=generation_config)
     sequences = generation["sequences"]
     generated_ids = sequences[:, model_inputs["input_ids"].shape[1] :]
-    generated_texts = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-    generated_texts = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-    completions += generated_texts
+    generated_texts = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
-    logging.debug(f"Model: {model}\nPrompt:\n {messages}\n Result: {generated_texts}")
+    logging.debug(f"Prompt:\n {messages}\n Result: {generated_texts}")
     return generated_texts
 
 

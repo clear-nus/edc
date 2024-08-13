@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from edc.edc_framework import EDC
 import os
 import logging
-from importlib import reload
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -19,7 +18,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--oie_few_shot_example_file_path",
-        default="./few_shot_examples/default/oie_few_shot_examples.txt",
+        default="./few_shot_examples/example/oie_few_shot_examples.txt",
         help="Few shot examples used for open information extraction.",
     )
 
@@ -34,7 +33,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--sd_few_shot_example_file_path",
-        default="./few_shot_examples/default/sd_few_shot_examples.txt",
+        default="./few_shot_examples/example/sd_few_shot_examples.txt",
         help="Few shot examples used for schema definition.",
     )
 
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--oie_refine_few_shot_example_file_path",
-        default="./few_shot_examples/default/oie_few_shot_refine_examples.txt",
+        default="./few_shot_examples/example/oie_few_shot_refine_examples.txt",
         help="Few shot examples used for refined open information extraction.",
     )
     parser.add_argument(
@@ -78,7 +77,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--ee_few_shot_example_file_path",
-        default="./few_shot_examples/default/ee_few_shot_examples.txt",
+        default="./few_shot_examples/example/ee_few_shot_examples.txt",
         help="Few shot examples used for entity extraction.",
     )
     parser.add_argument(
@@ -107,7 +106,6 @@ if __name__ == "__main__":
 
     # Output setting
     parser.add_argument("--output_dir", default="./output/tmp", help="Directory to output to.")
-    # parser.add_argument("--verbose", action="store_true", help="Whether to store the results at each stage.")
     parser.add_argument("--logging_verbose", action="store_const", dest="loglevel", const=logging.INFO)
     parser.add_argument("--logging_debug", action="store_const", dest="loglevel", const=logging.DEBUG)
 
