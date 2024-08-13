@@ -44,7 +44,7 @@ if __name__ == "__main__":
         help="LLM used for schema canonicaliztion verification.",
     )
     parser.add_argument(
-        "--sc_embedder", default="intfloat/e5-mistral-7b-instruct", help="Embedder used for schema canonicalization"
+        "--sc_embedder", default="intfloat/e5-mistral-7b-instruct", help="Embedder used for schema canonicalization. Has to be a sentence transformer. Please refer to https://sbert.net/"
     )
     parser.add_argument(
         "--sc_prompt_template_file_path",
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # Refinement setting
     parser.add_argument("--sr_adapter_path", default=None, help="Path to adapter of schema retriever.")
     parser.add_argument(
-        "--sr_embedder", default="intfloat/e5-mistral-7b-instruct", help="Embedding model used for schema retriever."
+        "--sr_embedder", default="intfloat/e5-mistral-7b-instruct", help="Embedding model used for schema retriever. Has to be a sentence transformer. Please refer to https://sbert.net/"
     )
     parser.add_argument(
         "--oie_refine_prompt_template_file_path",
