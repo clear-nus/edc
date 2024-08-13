@@ -1,5 +1,6 @@
 name: edc
 channels:
+  - xformers
   - pytorch
   - nvidia
   - conda-forge
@@ -33,8 +34,8 @@ dependencies:
   - brotli-python=1.0.9
   - bzip2=1.0.8
   - c-ares=1.19.1
-  - ca-certificates=2024.3.11
-  - certifi=2024.2.2
+  - ca-certificates=2024.7.2
+  - certifi=2024.7.4
   - charset-normalizer=2.0.4
   - colorama=0.4.6
   - comm=0.2.2
@@ -198,6 +199,7 @@ dependencies:
   - utf8proc=2.6.1
   - wcwidth=0.2.13
   - wheel=0.41.2
+  - xformers=0.0.25.post1
   - xxhash=0.8.0
   - xz=5.4.6
   - yaml=0.2.5
@@ -225,8 +227,10 @@ dependencies:
       - httpcore==1.0.5
       - httpx==0.27.0
       - huggingface-hub==0.23.2
+      - ipywidgets==8.1.3
       - itsdangerous==2.2.0
       - joblib==1.4.2
+      - jupyterlab-widgets==3.0.11
       - lxml==5.2.2
       - nervaluate==0.1.8
       - nltk==3.8.1
@@ -239,12 +243,14 @@ dependencies:
       - retrying==1.3.4
       - scikit-learn==1.5.0
       - scipy==1.13.1
+      - sentence-transformers==3.0.1
       - sentencepiece==0.2.0
       - sniffio==1.3.1
       - soupsieve==2.5
       - tenacity==8.3.0
       - threadpoolctl==3.5.0
       - tokenizers==0.19.1
-      - transformers==4.42.4
+      - transformers==4.43.4
       - unidecode==1.3.8
       - werkzeug==3.0.3
+      - widgetsnbextension==4.0.11
