@@ -4,6 +4,9 @@ from pathlib import Path
 import edc.utils.llm_utils as llm_utils
 import re
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SchemaDefiner:
@@ -40,10 +43,14 @@ class SchemaDefiner:
         if self.openai_model is None:
             # llm_utils.generate_completion_transformers([messages], self.model, self.tokenizer, device=self.device)
             completion = llm_utils.generate_completion_transformers(
-                [messages], self.model, self.tokenizer, device=self.model.device, answer_prepend="Answer: "
-            )[0]
+                messages, self.model, self.tokenizer, answer_prepend="Answer: "
+            )
         else:
             completion = llm_utils.openai_chat_completion(self.openai_model, None, messages)
             
         relation_definition_dict = llm_utils.parse_relation_definition(completion)
+        
+        missing_relations = [rel for rel in relations_present if rel not in relation_definition_dict]
+        if len(missing_relations) != 0:
+            logger.debug(f"Relations {missing_relations} are missing from the relation definition!")
         return relation_definition_dict

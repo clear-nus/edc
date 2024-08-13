@@ -61,6 +61,7 @@ python run.py \
     --sd_llm gpt-3.5-turbo \
     --sd_few_shot_example_file_path ./few_shot_examples/{dataset}/sd_few_shot_examples.txt \
     --sc_llm gpt-3.5-turbo \
+    --sc_embedder intfloat/e5-mistral-7b-instruct \
     --input_text_file_path ./datasets/{dataset}.txt \
     --target_schema_path ./schemas/{dataset}_schema.csv \
     --output_dir ./output/{dataset}_target_alignment
@@ -75,22 +76,27 @@ python run.py \
     --sd_llm gpt-3.5-turbo \
     --sd_few_shot_example_file_path ./few_shot_examples/{dataset}/sd_few_shot_examples.txt \
     --sc_llm gpt-3.5-turbo \
+    --sc_embedder intfloat/e5-mistral-7b-instruct \
     --input_text_file_path ./datasets/{dataset}.txt \
     --enrich_schema \
     --output_dir ./output/{dataset}_self_canonicalization
 ```
 
-where `oie_llm` can take value from `gpt-3.5-turbo`, `gpt-4` and `mistralai/Mistral-7B-Instruct-v0.2` (you may use other OpenAI models or other transformers models, but they were not tested) and `dataset` can take value from `webnlg`, `rebel` and `wiki-nre`. You may use EDC on customized input and target schema by following the formats used in `datasets` and `schemas`. You may also tweak the prompt templates and few-shot examples used by changing `prompt_templates` and `few_shot_examples`. To be noted, if you would like to use OpenAI models, please set the environment variable `OPENAI_KEY` to your own API key.
-
 To apply iterative refinement, first train the schema retriever as aforementioned and pass the following extra arguments:
 
 ```
---sr_adapter_path /path/to/trained/adapter
+--sr_adapter_path /path/to/trained/adapter (OR --sr_embedder /your/own/embedder)
 --oie_refine_few_shot_example_file_path ./few_shot_examples/{dataset}/oie_few_shot_refine_examples.txt \
 --ee_llm gpt-3.5-turbo \
 --ee_few_shot_example_file_path ./few_shot_examples/{dataset}/ee_few_shot_examples.txt \
 --refinement_iterations N \
 ```
+
+where `oie_llm` can take value from `gpt-3.5-turbo`, `gpt-4` and `mistralai/Mistral-7B-Instruct-v0.2` (you may use other OpenAI models or other transformers models, but they were not tested) and `dataset` can take value from `webnlg`, `rebel` and `wiki-nre`. `sc_embedder` is by default `intfloat/e5-mistral-7b-instruct`. You may use any sentence transformer of you choice (please refer to https://sbert.net/) but they are not tested. Similarly, for refinement, you can pass the path to the finetuned model using `sr_adapter_path` or any sentence transformer using `sr_embedder`. It is to be noted the default embedders used for schema canonicalization and refinement demand significant compute (7B), you may consider using smaller models or even finetune on top of them if your compute is limited (and the LLMs for prompting as well).
+
+You may use EDC on customized input and target schema by following the formats used in `datasets` and `schemas`. You may also tweak the prompt templates and few-shot examples used by changing `prompt_templates` and `few_shot_examples`. To be noted, if you would like to use OpenAI models, please set the environment variable `OPENAI_KEY` to your own API key. An example command to run EDC on an example dataset is given in `run.sh`.
+
+
 
 ## Evaluation
 
